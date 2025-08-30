@@ -118,7 +118,10 @@
       </div>
 
       <!-- Analysis Output Container -->
-      <div id="analysis-output" class="hidden p-4 border-t bg-gray-50">
+      <div
+        id="analysis-output"
+        class="hidden p-4 border-t bg-gray-50 overflow-y-auto"
+      >
         <h3 class="font-bold text-lg mb-2">Analysis Complete</h3>
         <div id="analysis-content" class="text-sm space-y-4"></div>
         <div id="download-section" class="hidden mt-4">
@@ -419,6 +422,21 @@
         // Store letters for download
         generatedLetters = result.letters;
 
+        // Safely format the currency
+        const formatCurrency = (amount) =>
+          new Intl.NumberFormat("en-US", {
+            style: "currency",
+            currency: "USD",
+          }).format(amount);
+        const lowEnd =
+          result.caseValue && result.caseValue.lowEnd
+            ? formatCurrency(result.caseValue.lowEnd)
+            : "$0";
+        const highEnd =
+          result.caseValue && result.caseValue.highEnd
+            ? formatCurrency(result.caseValue.highEnd)
+            : "$0";
+
         let htmlContent = `
                 <div class="bg-white p-3 rounded-lg border">
                     <h4 class="font-semibold text-gray-800">Identified Issues:</h4>
@@ -431,18 +449,30 @@
                           .join("")}
                     </ul>
                 </div>
+
                 <div class="bg-white p-3 rounded-lg border">
-                    <h4 class="font-semibold text-gray-800">Case Value Estimate:</h4>
-                    <p class="mt-1 text-gray-600">Our heuristic suggests a <strong class="text-blue-600">${
-                      result.caseValueHeuristic
-                    }</strong> potential case value if violations are proven willful. This is for informational purposes only and is not legal advice.</p>
+                    <h4 class="font-semibold text-gray-800">Case Value Estimate (Willful Violation):</h4>
+                    <p class="mt-1 text-gray-600">Based on similar FCRA cases, the potential statutory and punitive damages could range from <strong class="text-blue-600">${lowEnd} to ${highEnd}</strong>. This is an informational estimate, not a guarantee of outcome or legal advice.</p>
                 </div>
+
                 <div class="bg-white p-3 rounded-lg border">
-                    <h4 class="font-semibold text-gray-800">Recommended Next Steps:</h4>
+                    <h4 class="font-semibold text-gray-800">Overall Strategy:</h4>
                     <p class="mt-1 text-gray-600">${result.strategy}</p>
-                    <a href="${
-                      result.productLink.url
-                    }" target="_blank" class="inline-block mt-3 bg-green-500 text-white px-3 py-1.5 rounded-md hover:bg-green-600 transition duration-300 text-sm font-semibold">
+                </div>
+
+                <div class="bg-white p-3 rounded-lg border">
+                    <h4 class="font-semibold text-gray-800">Step-by-Step Letter Sending Instructions:</h4>
+                    <div class="mt-1 text-gray-600">${result.letterSendingInstructions.replace(
+                      /\n/g,
+                      "<br>"
+                    )}</div>
+                </div>
+
+                <div class="bg-white p-3 rounded-lg border">
+                    <h4 class="font-semibold text-gray-800">Recommended Product:</h4>
+                     <a href="${
+                       result.productLink.url
+                     }" target="_blank" class="inline-block mt-2 bg-green-500 text-white px-3 py-1.5 rounded-md hover:bg-green-600 transition duration-300 text-sm font-semibold">
                         ${result.productLink.text}
                     </a>
                 </div>
@@ -469,10 +499,11 @@
 
             Analysis Flow:
             1.  Parse tradelines and identify inaccuracies like conflicting dates (DOFD, DOLP), incorrect balances, duplicate accounts, etc.
-            2.  Provide an informational case-value heuristic (e.g., "Low," "Likely," "Stretch").
-            3.  Outline a brief dispute strategy.
-            4.  Recommend a product with a link.
-            5.  Draft four letters based on the templates below. Ensure placeholders like [Your Name], [Date], etc., are present.
+            2.  **Case Value Range:** Provide an informational case-value as a monetary range based on readily available data for willful FCRA violations. This should be an object with "lowEnd" and "highEnd" keys.
+            3.  **Overall Strategy:** Outline a brief, high-level dispute strategy.
+            4.  **Step-by-Step Instructions:** Provide a detailed, step-by-step guide for sending the letters, including timelines (e.g., "Send Step 1 via certified mail. Wait 30-45 days. If no resolution, send Step 2.").
+            5.  Recommend a product with a link.
+            6.  Draft four letters based on the templates below. Ensure placeholders like [Your Name], [Date], etc., are present.
 
             Letter Templates:
             -   Step 1 (Dispute to CRA): Formal letter to the credit reporting agency (CRA) identifying the inaccurate item and requesting a reinvestigation under 15 U.S.C. § 1681i.
@@ -485,13 +516,14 @@
             Example JSON structure:
             {
               "issues": [
-                { "account": "XYZ Card / #...1234", "type": "Inaccurate Date of First Delinquency", "description": "Experian report (from file report-exp.pdf) shows DOFD as 01/2022, but TransUnion report (from file report-tu.pdf) shows 03/2022." }
+                { "account": "XYZ Card / #...1234", "type": "Inaccurate Date of First Delinquency", "description": "Experian report shows DOFD as 01/2022, but TransUnion shows 03/2022." }
               ],
-              "caseValueHeuristic": "Likely",
-              "strategy": "The primary inconsistency is the conflicting DOFD for the XYZ Card across different reports. The first step is to dispute this with all three credit bureaus, demanding they correct the inaccurate information based on their records.",
+              "caseValue": { "lowEnd": 1000, "highEnd": 5000 },
+              "strategy": "The primary inconsistency is the conflicting DOFD. We will challenge this with all bureaus and then the original creditor if necessary.",
+              "letterSendingInstructions": "1. Send the 'Step 1: CRA Dispute' letter to all three credit bureaus via certified mail immediately.\\n2. The bureaus have 30-45 days to respond. Wait for their investigation results.\\n3. If the item is not deleted, send the 'Step 2: MOV Request' letter to the bureaus that verified the debt.\\n4. Simultaneously, send the 'Step 3: Furnisher Letter' to the original creditor.",
               "productLink": { "text": "Purchase Our Advanced Dispute Toolkit", "url": "https://www.thebureaubullies.com/product-link" },
               "letters": {
-                "step1": "Step 1 Letter Content...",
+                "step1": "[Your Name]\\n[Your Address]\\n[Date]\\n\\nCredit Bureau Name\\nBureau Address\\n\\nSubject: Formal Dispute of Inaccurate Information - Account #...1234\\n\\nTo Whom It May Concern,\\n\\nI am writing to dispute the following information...",
                 "step2": "Step 2 Letter Content...",
                 "step3": "Step 3 Letter Content...",
                 "step4": "Step 4 Letter Content..."
