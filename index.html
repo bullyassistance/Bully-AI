@@ -1,273 +1,471 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Bully AI - Credit Report Assistant</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
     <script>
-        pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js`;
+      pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js`;
     </script>
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
+      body {
+        font-family: "Inter", sans-serif;
+      }
+      .chat-bubble {
+        max-width: 80%;
+      }
+      .chat-bubble-user {
+        background-color: #3b82f6; /* blue-500 */
+        color: white;
+      }
+      .chat-bubble-ai {
+        background-color: #e5e7eb; /* gray-200 */
+        color: #1f2937; /* gray-800 */
+      }
+      /* Scrollbar styles for webkit browsers */
+      #chat-container::-webkit-scrollbar {
+        width: 8px;
+      }
+      #chat-container::-webkit-scrollbar-track {
+        background: #f1f1f1;
+      }
+      #chat-container::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 4px;
+      }
+      #chat-container::-webkit-scrollbar-thumb:hover {
+        background: #555;
+      }
+      .loader {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #3498db;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
         }
-        .chat-bubble {
-            max-width: 80%;
+        100% {
+          transform: rotate(360deg);
         }
-        .chat-bubble-user {
-            background-color: #3B82F6; /* blue-500 */
-            color: white;
-        }
-        .chat-bubble-ai {
-            background-color: #E5E7EB; /* gray-200 */
-            color: #1F2937; /* gray-800 */
-        }
-        /* Scrollbar styles for webkit browsers */
-        #chat-container::-webkit-scrollbar {
-            width: 8px;
-        }
-        #chat-container::-webkit-scrollbar-track {
-            background: #f1f1f1;
-        }
-        #chat-container::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 4px;
-        }
-        #chat-container::-webkit-scrollbar-thumb:hover {
-            background: #555;
-        }
-        .loader {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #3498db;
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+      }
+      /* Style for the file remove button */
+      .remove-file-btn {
+        font-size: 1.2rem;
+        line-height: 1;
+        font-weight: bold;
+      }
     </style>
-</head>
-<body class="bg-gray-100 flex items-center justify-center h-screen">
-
-    <div class="w-full max-w-2xl h-full sm:h-[90vh] sm:max-h-[800px] bg-white rounded-lg shadow-2xl flex flex-col">
-        <!-- Header -->
-        <div class="bg-gray-800 text-white p-4 rounded-t-lg flex items-center justify-between">
-            <div>
-                <h1 class="text-xl font-bold">Bully AI</h1>
-                <p class="text-sm text-gray-300">Your Consumer-Law Compliance Assistant</p>
-            </div>
-            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-400"><path d="M12 8V4H8"/><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 2v2"/><path d="M9 2v2"/></svg>
+  </head>
+  <body class="bg-gray-100 flex items-center justify-center h-screen">
+    <div
+      class="w-full max-w-2xl h-full sm:h-[90vh] sm:max-h-[800px] bg-white rounded-lg shadow-2xl flex flex-col"
+    >
+      <!-- Header -->
+      <div
+        class="bg-gray-800 text-white p-4 rounded-t-lg flex items-center justify-between"
+      >
+        <div>
+          <h1 class="text-xl font-bold">Bully AI</h1>
+          <p class="text-sm text-gray-300">
+            Your Consumer-Law Compliance Assistant
+          </p>
         </div>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="32"
+          height="32"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="text-blue-400"
+        >
+          <path d="M12 8V4H8" />
+          <rect x="4" y="4" width="16" height="16" rx="2" />
+          <path d="M2 14h2" />
+          <path d="M20 14h2" />
+          <path d="M15 2v2" />
+          <path d="M9 2v2" />
+        </svg>
+      </div>
 
-        <!-- Chat Container -->
-        <div id="chat-container" class="flex-1 p-4 overflow-y-auto space-y-4">
-            <!-- Initial Bot Message -->
-            <div class="flex justify-start">
-                <div class="chat-bubble chat-bubble-ai p-3 rounded-lg">
-                    <p class="text-sm" id="opening-message">Upload your 3-bureau credit reports (PDF recommended). I'll scan for inconsistencies—DOFD, DOLP, charge-off dates, payment-history conflicts, and more—then estimate potential case value if a violation becomes willful and draft your letters for each step. You'll get ready-to-mail docs after we confirm the details.</p>
-                </div>
-            </div>
+      <!-- Chat Container -->
+      <div id="chat-container" class="flex-1 p-4 overflow-y-auto space-y-4">
+        <!-- Initial Bot Message -->
+        <div class="flex justify-start">
+          <div class="chat-bubble chat-bubble-ai p-3 rounded-lg">
+            <p class="text-sm" id="opening-message">
+              Upload your 3-bureau credit reports (PDF recommended). I'll scan
+              for inconsistencies—DOFD, DOLP, charge-off dates, payment-history
+              conflicts, and more—then estimate potential case value if a
+              violation becomes willful and draft your letters for each step.
+              You'll get ready-to-mail docs after we confirm the details.
+            </p>
+          </div>
         </div>
+      </div>
 
-        <!-- Analysis Output Container -->
-        <div id="analysis-output" class="hidden p-4 border-t bg-gray-50">
-            <h3 class="font-bold text-lg mb-2">Analysis Complete</h3>
-            <div id="analysis-content" class="text-sm space-y-4"></div>
-             <div id="download-section" class="hidden mt-4">
-                <h4 class="font-semibold mb-2">Download Your Dispute Letters</h4>
-                <div class="flex flex-col sm:flex-row gap-2">
-                    <button onclick="downloadLetter('step1')" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-300 text-sm w-full">Step 1: CRA Dispute</button>
-                    <button onclick="downloadLetter('step2')" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-300 text-sm w-full">Step 2: MOV Request</button>
-                    <button onclick="downloadLetter('step3')" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-300 text-sm w-full">Step 3: Furnisher Letter</button>
-                    <button onclick="downloadLetter('step4')" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-300 text-sm w-full">Step 4: Demand Letter</button>
-                </div>
-            </div>
+      <!-- Analysis Output Container -->
+      <div id="analysis-output" class="hidden p-4 border-t bg-gray-50">
+        <h3 class="font-bold text-lg mb-2">Analysis Complete</h3>
+        <div id="analysis-content" class="text-sm space-y-4"></div>
+        <div id="download-section" class="hidden mt-4">
+          <h4 class="font-semibold mb-2">Download Your Dispute Letters</h4>
+          <div class="flex flex-col sm:flex-row gap-2">
+            <button
+              onclick="downloadLetter('step1')"
+              class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-300 text-sm w-full"
+            >
+              Step 1: CRA Dispute
+            </button>
+            <button
+              onclick="downloadLetter('step2')"
+              class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-300 text-sm w-full"
+            >
+              Step 2: MOV Request
+            </button>
+            <button
+              onclick="downloadLetter('step3')"
+              class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-300 text-sm w-full"
+            >
+              Step 3: Furnisher Letter
+            </button>
+            <button
+              onclick="downloadLetter('step4')"
+              class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-300 text-sm w-full"
+            >
+              Step 4: Demand Letter
+            </button>
+          </div>
         </div>
+      </div>
 
-
-        <!-- Input Area -->
-        <div class="p-4 border-t bg-gray-50 rounded-b-lg">
-            <div class="flex items-center space-x-2">
-                <input type="file" id="file-upload" class="hidden" accept=".pdf,.txt" onchange="handleFileUpload(event)">
-                <button onclick="document.getElementById('file-upload').click()" class="p-2 text-gray-600 hover:text-blue-600 rounded-full hover:bg-gray-200 transition duration-300" aria-label="Upload file">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                </button>
-                <textarea id="user-input" rows="1" class="flex-1 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" placeholder="Or paste credit report text here..."></textarea>
-                <button id="send-button" onclick="sendMessage()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-300 font-semibold">Analyze</button>
-            </div>
-            <p id="file-name" class="text-xs text-gray-500 mt-1 ml-12"></p>
+      <!-- Input Area -->
+      <div class="p-4 border-t bg-gray-50 rounded-b-lg">
+        <div class="flex items-center space-x-2">
+          <input
+            type="file"
+            id="file-upload"
+            class="hidden"
+            accept=".pdf,.txt"
+            onchange="handleFileUpload(event)"
+            multiple
+          />
+          <button
+            onclick="document.getElementById('file-upload').click()"
+            class="p-2 text-gray-600 hover:text-blue-600 rounded-full hover:bg-gray-200 transition duration-300"
+            aria-label="Upload file"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="17 8 12 3 7 8" />
+              <line x1="12" y1="3" x2="12" y2="15" />
+            </svg>
+          </button>
+          <textarea
+            id="user-input"
+            rows="1"
+            class="flex-1 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+            placeholder="Or paste credit report text here..."
+          ></textarea>
+          <button
+            id="send-button"
+            onclick="sendMessage()"
+            class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-300 font-semibold"
+          >
+            Analyze
+          </button>
         </div>
+        <div
+          id="file-name-container"
+          class="mt-2 flex flex-wrap items-center gap-2"
+        ></div>
+      </div>
     </div>
 
     <script>
-        // Store generated letters to enable download
-        let generatedLetters = {};
+      // Store generated letters to enable download
+      let generatedLetters = {};
+      // Store file objects ready for upload
+      let stagedFiles = [];
 
-        function appendMessage(text, sender) {
-            const chatContainer = document.getElementById('chat-container');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `flex ${sender === 'user' ? 'justify-end' : 'justify-start'}`;
-            
-            const bubble = document.createElement('div');
-            bubble.className = `chat-bubble p-3 rounded-lg ${sender === 'user' ? 'chat-bubble-user' : 'chat-bubble-ai'}`;
-            
-            const content = document.createElement('p');
-            content.className = 'text-sm';
-            content.innerText = text;
+      function appendMessage(text, sender) {
+        const chatContainer = document.getElementById("chat-container");
+        const messageDiv = document.createElement("div");
+        messageDiv.className = `flex ${
+          sender === "user" ? "justify-end" : "justify-start"
+        }`;
 
-            bubble.appendChild(content);
-            messageDiv.appendChild(bubble);
-            chatContainer.appendChild(messageDiv);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-        }
+        const bubble = document.createElement("div");
+        bubble.className = `chat-bubble p-3 rounded-lg ${
+          sender === "user" ? "chat-bubble-user" : "chat-bubble-ai"
+        }`;
 
-        function showLoadingIndicator() {
-            const chatContainer = document.getElementById('chat-container');
-            const loadingDiv = document.createElement('div');
-            loadingDiv.id = 'loading-indicator';
-            loadingDiv.className = 'flex justify-start';
-            loadingDiv.innerHTML = `
+        const content = document.createElement("p");
+        content.className = "text-sm";
+        content.innerText = text;
+
+        bubble.appendChild(content);
+        messageDiv.appendChild(bubble);
+        chatContainer.appendChild(messageDiv);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      }
+
+      function showLoadingIndicator() {
+        const chatContainer = document.getElementById("chat-container");
+        const loadingDiv = document.createElement("div");
+        loadingDiv.id = "loading-indicator";
+        loadingDiv.className = "flex justify-start";
+        loadingDiv.innerHTML = `
                 <div class="chat-bubble chat-bubble-ai p-3 rounded-lg flex items-center space-x-2">
                     <div class="loader"></div>
                     <p class="text-sm">Bully AI is analyzing your report...</p>
                 </div>
             `;
-            chatContainer.appendChild(loadingDiv);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
+        chatContainer.appendChild(loadingDiv);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      }
+
+      function removeLoadingIndicator() {
+        const loadingIndicator = document.getElementById("loading-indicator");
+        if (loadingIndicator) {
+          loadingIndicator.remove();
         }
+      }
 
-        function removeLoadingIndicator() {
-            const loadingIndicator = document.getElementById('loading-indicator');
-            if (loadingIndicator) {
-                loadingIndicator.remove();
-            }
+      function handleFileUpload(event) {
+        const newFiles = event.target.files;
+        if (!newFiles || newFiles.length === 0) return;
+
+        // Add new files to the staged files array
+        stagedFiles.push(...Array.from(newFiles));
+
+        updateStagedFilesUI();
+
+        // Reset the file input so the 'change' event fires even if the same file is selected again
+        event.target.value = "";
+      }
+
+      function updateStagedFilesUI() {
+        const fileNameContainer = document.getElementById(
+          "file-name-container"
+        );
+        // Always clear the container first
+        fileNameContainer.innerHTML = "";
+
+        if (stagedFiles.length > 0) {
+          stagedFiles.forEach((file, index) => {
+            const fileTag = document.createElement("div");
+            fileTag.className =
+              "inline-flex items-center bg-gray-200 text-gray-800 text-xs font-medium px-2.5 py-1 rounded-full";
+
+            const fileName = document.createElement("span");
+            fileName.textContent = file.name;
+
+            const removeBtn = document.createElement("button");
+            removeBtn.className =
+              "ml-2 text-gray-500 hover:text-gray-900 remove-file-btn";
+            removeBtn.innerHTML = "&times;"; // The 'x' character
+            removeBtn.setAttribute("aria-label", `Remove ${file.name}`);
+            removeBtn.onclick = () => removeStagedFile(index);
+
+            fileTag.appendChild(fileName);
+            fileTag.appendChild(removeBtn);
+            fileNameContainer.appendChild(fileTag);
+          });
         }
+      }
 
-        function handleFileUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
+      function removeStagedFile(index) {
+        // Remove the file at the specified index
+        stagedFiles.splice(index, 1);
+        // Update the UI to reflect the change
+        updateStagedFilesUI();
+      }
 
-            const fileNameDisplay = document.getElementById('file-name');
-            fileNameDisplay.textContent = `File selected: ${file.name}`;
-            appendMessage(`File uploaded: ${file.name}`, 'user');
+      async function sendMessage() {
+        const userInput = document.getElementById("user-input");
+        const reportText = userInput.value.trim();
 
+        if (stagedFiles.length === 0 && !reportText) return;
+
+        // 1. Determine the user's message and append it FIRST.
+        let userMessageText = "";
+        if (reportText) {
+          userMessageText = `Analyzing pasted text and ${stagedFiles.length} uploaded file(s).`;
+        } else {
+          userMessageText = `Analyzing ${
+            stagedFiles.length
+          } uploaded file(s): ${stagedFiles.map((f) => f.name).join(", ")}`;
+        }
+        appendMessage(userMessageText, "user");
+
+        // 2. NOW, show the loading indicator and disable the button.
+        showLoadingIndicator();
+        document.getElementById("send-button").disabled = true;
+
+        // 3. Create a copy of the files to process before clearing the UI state.
+        const filesToProcess = [...stagedFiles];
+
+        // 4. Clear the input fields for the next message.
+        userInput.value = "";
+        stagedFiles = [];
+        updateStagedFilesUI();
+
+        const fileReadPromises = filesToProcess.map((file) => {
+          return new Promise((resolve, reject) => {
             const reader = new FileReader();
-            
-            if (file.type === 'application/pdf') {
-                reader.onload = function(e) {
-                    const typedarray = new Uint8Array(e.target.result);
-                    pdfjsLib.getDocument(typedarray).promise.then(pdf => {
-                        let textContent = '';
-                        const numPages = pdf.numPages;
-                        let pagesProcessed = 0;
-                        for (let i = 1; i <= numPages; i++) {
-                            pdf.getPage(i).then(page => {
-                                page.getTextContent().then(text => {
-                                    textContent += text.items.map(s => s.str).join(' ');
-                                    pagesProcessed++;
-                                    if (pagesProcessed === numPages) {
-                                        document.getElementById('user-input').value = textContent;
-                                        sendMessage(true); // Automatically send after processing
-                                    }
-                                });
-                            });
-                        }
-                    });
-                };
-                reader.readAsArrayBuffer(file);
-            } else { // Assuming .txt
-                reader.onload = function(e) {
-                    document.getElementById('user-input').value = e.target.result;
-                    sendMessage(true); // Automatically send after processing
-                };
-                reader.readAsText(file);
+            reader.onload = (e) => {
+              if (file.type === "application/pdf") {
+                const typedarray = new Uint8Array(e.target.result);
+                pdfjsLib
+                  .getDocument(typedarray)
+                  .promise.then((pdf) => {
+                    let pdfText = "";
+                    const pagePromises = [];
+                    for (let i = 1; i <= pdf.numPages; i++) {
+                      pagePromises.push(
+                        pdf.getPage(i).then((page) => page.getTextContent())
+                      );
+                    }
+                    Promise.all(pagePromises)
+                      .then((textContents) => {
+                        pdfText = textContents
+                          .map((textContent) =>
+                            textContent.items.map((s) => s.str).join(" ")
+                          )
+                          .join("\n\n");
+                        resolve({ name: file.name, content: pdfText });
+                      })
+                      .catch(reject);
+                  })
+                  .catch(reject);
+              } else {
+                // Assuming .txt
+                resolve({ name: file.name, content: e.target.result });
+              }
+            };
+            reader.onerror = reject;
+
+            if (file.type === "application/pdf") {
+              reader.readAsArrayBuffer(file);
+            } else {
+              reader.readAsText(file);
             }
+          });
+        });
+
+        try {
+          const fileContents = await Promise.all(fileReadPromises);
+
+          let combinedContent = fileContents
+            .map(
+              (result) =>
+                `--- START OF FILE: ${result.name} ---\n\n${result.content}\n\n--- END OF FILE: ${result.name} ---`
+            )
+            .join("\n\n");
+
+          if (reportText) {
+            if (combinedContent) combinedContent += "\n\n";
+            combinedContent += `--- START OF PASTED TEXT ---\n\n${reportText}\n\n--- END OF PASTED TEXT ---`;
+          }
+
+          // Call the DeepSeek API
+          const analysisResult = await getAIAnalysis(combinedContent);
+
+          removeLoadingIndicator();
+
+          // Display the results in the dedicated output area
+          displayAnalysis(analysisResult);
+        } catch (error) {
+          removeLoadingIndicator();
+          console.error("Error during analysis:", error);
+          appendMessage(
+            "Sorry, there was an error processing your request. Please check the file formats and try again.",
+            "ai"
+          );
+        } finally {
+          document.getElementById("send-button").disabled = false;
         }
+      }
 
-        async function sendMessage(isAutoSend = false) {
-            const userInput = document.getElementById('user-input');
-            const reportText = userInput.value.trim();
+      function displayAnalysis(result) {
+        const analysisOutput = document.getElementById("analysis-output");
+        const analysisContent = document.getElementById("analysis-content");
+        const downloadSection = document.getElementById("download-section");
 
-            if (!reportText) return;
+        // Store letters for download
+        generatedLetters = result.letters;
 
-            if (!isAutoSend) {
-                appendMessage(reportText, 'user');
-            }
-            userInput.value = '';
-            document.getElementById('file-name').textContent = '';
-            
-            showLoadingIndicator();
-            document.getElementById('send-button').disabled = true;
-
-            try {
-                // Call the DeepSeek API
-                const analysisResult = await getAIAnalysis(reportText);
-                
-                removeLoadingIndicator();
-                
-                // Display the results in the dedicated output area
-                displayAnalysis(analysisResult);
-
-            } catch (error) {
-                removeLoadingIndicator();
-                console.error('API Error:', error);
-                appendMessage('Sorry, there was an error analyzing your report. Please ensure the format is correct and try again.', 'ai');
-            } finally {
-                document.getElementById('send-button').disabled = false;
-            }
-        }
-        
-        function displayAnalysis(result) {
-            const analysisOutput = document.getElementById('analysis-output');
-            const analysisContent = document.getElementById('analysis-content');
-            const downloadSection = document.getElementById('download-section');
-
-            // Store letters for download
-            generatedLetters = result.letters;
-
-            let htmlContent = `
+        let htmlContent = `
                 <div class="bg-white p-3 rounded-lg border">
                     <h4 class="font-semibold text-gray-800">Identified Issues:</h4>
                     <ul class="list-disc list-inside mt-1 text-gray-600">
-                        ${result.issues.map(issue => `<li><strong>${issue.type}:</strong> ${issue.description} (Account: ${issue.account})</li>`).join('')}
+                        ${result.issues
+                          .map(
+                            (issue) =>
+                              `<li><strong>${issue.type}:</strong> ${issue.description} (Account: ${issue.account})</li>`
+                          )
+                          .join("")}
                     </ul>
                 </div>
                 <div class="bg-white p-3 rounded-lg border">
                     <h4 class="font-semibold text-gray-800">Case Value Estimate:</h4>
-                    <p class="mt-1 text-gray-600">Our heuristic suggests a <strong class="text-blue-600">${result.caseValueHeuristic}</strong> potential case value if violations are proven willful. This is for informational purposes only and is not legal advice.</p>
+                    <p class="mt-1 text-gray-600">Our heuristic suggests a <strong class="text-blue-600">${
+                      result.caseValueHeuristic
+                    }</strong> potential case value if violations are proven willful. This is for informational purposes only and is not legal advice.</p>
                 </div>
                 <div class="bg-white p-3 rounded-lg border">
                     <h4 class="font-semibold text-gray-800">Recommended Next Steps:</h4>
                     <p class="mt-1 text-gray-600">${result.strategy}</p>
-                    <a href="${result.productLink.url}" target="_blank" class="inline-block mt-3 bg-green-500 text-white px-3 py-1.5 rounded-md hover:bg-green-600 transition duration-300 text-sm font-semibold">
+                    <a href="${
+                      result.productLink.url
+                    }" target="_blank" class="inline-block mt-3 bg-green-500 text-white px-3 py-1.5 rounded-md hover:bg-green-600 transition duration-300 text-sm font-semibold">
                         ${result.productLink.text}
                     </a>
                 </div>
             `;
 
-            analysisContent.innerHTML = htmlContent;
-            analysisOutput.classList.remove('hidden');
-            downloadSection.classList.remove('hidden');
+        analysisContent.innerHTML = htmlContent;
+        analysisOutput.classList.remove("hidden");
+        downloadSection.classList.remove("hidden");
 
-             // Scroll to the bottom to show the analysis
-            const chatContainer = document.getElementById('chat-container');
-            chatContainer.parentElement.scrollTop = chatContainer.parentElement.scrollHeight;
-        }
+        // Scroll to the bottom to show the analysis
+        const chatContainer = document.getElementById("chat-container");
+        chatContainer.parentElement.scrollTop =
+          chatContainer.parentElement.scrollHeight;
+      }
 
-        async function getAIAnalysis(reportText) {
-            // IMPORTANT: Replace with your actual DeepSeek API key from the client
-            const apiKey = "sk-5eb8595f31c745f8963c0c1d839e498a"; 
-            const apiUrl = "https://api.deepseek.com/v1/chat/completions";
+      async function getAIAnalysis(reportText) {
+        // IMPORTANT: Replace with your actual DeepSeek API key from the client
+        const apiKey = "sk-5eb8595f31c745f8963c0c1d839e498a";
+        const apiUrl = "https://api.deepseek.com/v1/chat/completions";
 
-            const systemPrompt = `You are "Bully AI," a consumer-law compliance assistant for credit report analysis. You are not a lawyer and do not provide legal advice. You provide information and document drafts for educational purposes. You must not hallucinate. If a fact or statute is uncertain, say: "Unable to verify - legal research required." Your name is Bully AI.
+        const systemPrompt = `You are "Bully AI," a consumer-law compliance assistant for credit report analysis. You are not a lawyer and do not provide legal advice. You provide information and document drafts for educational purposes. You must not hallucinate. If a fact or statute is uncertain, say: "Unable to verify - legal research required." Your name is Bully AI.
 
-            Your task is to analyze the provided credit report text, identify potential inaccuracies under the Fair Credit Reporting Act (FCRA), and generate a JSON object containing the analysis and four dispute letters.
+            Your task is to analyze the provided credit report text, identify potential inaccuracies under the Fair Credit Reporting Act (FCRA), and generate a JSON object containing the analysis and four dispute letters. The user may provide text from multiple credit reports concatenated together; analyze all information comprehensively, noting which report a discrepancy comes from if possible.
 
             Analysis Flow:
             1.  Parse tradelines and identify inaccuracies like conflicting dates (DOFD, DOLP), incorrect balances, duplicate accounts, etc.
@@ -287,10 +485,10 @@
             Example JSON structure:
             {
               "issues": [
-                { "account": "XYZ Card / #...1234", "type": "Inaccurate Date of First Delinquency", "description": "Experian reports DOFD as 01/2022, but TransUnion reports 03/2022." }
+                { "account": "XYZ Card / #...1234", "type": "Inaccurate Date of First Delinquency", "description": "Experian report (from file report-exp.pdf) shows DOFD as 01/2022, but TransUnion report (from file report-tu.pdf) shows 03/2022." }
               ],
               "caseValueHeuristic": "Likely",
-              "strategy": "The primary inconsistency is the conflicting DOFD for the XYZ Card. The first step is to dispute this with all three credit bureaus, demanding they correct the inaccurate information based on their records.",
+              "strategy": "The primary inconsistency is the conflicting DOFD for the XYZ Card across different reports. The first step is to dispute this with all three credit bureaus, demanding they correct the inaccurate information based on their records.",
               "productLink": { "text": "Purchase Our Advanced Dispute Toolkit", "url": "https://www.thebureaubullies.com/product-link" },
               "letters": {
                 "step1": "Step 1 Letter Content...",
@@ -300,63 +498,69 @@
               }
             }`;
 
-            const payload = {
-                model: "deepseek-chat",
-                messages: [
-                    { "role": "system", "content": systemPrompt },
-                    { "role": "user", "content": `Here is the credit report text: \n\n${reportText}` }
-                ],
-                response_format: { type: "json_object" }
-            };
+        const payload = {
+          model: "deepseek-chat", // This is the most advanced model for chat and reasoning.
+          messages: [
+            { role: "system", content: systemPrompt },
+            {
+              role: "user",
+              content: `Here is the combined text from the user's credit reports: \n\n${reportText}`,
+            },
+          ],
+          response_format: { type: "json_object" },
+        };
 
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`
-                },
-                body: JSON.stringify(payload)
-            });
-
-            if (!response.ok) {
-                const errorBody = await response.text();
-                throw new Error(`API request failed with status ${response.status}: ${errorBody}`);
-            }
-
-            const result = await response.json();
-            const jsonString = result.choices[0].message.content;
-            
-            // Sometimes the model might wrap the JSON in markdown, so we clean it.
-            const cleanedJsonString = jsonString.replace(/^```json\n|```$/g, '');
-            return JSON.parse(cleanedJsonString);
-        }
-        
-        function downloadLetter(stepKey) {
-            const letterContent = generatedLetters[stepKey];
-            if (!letterContent) {
-                alert('Letter content not available.');
-                return;
-            }
-
-            // This is a simplified "download as Word" using a Blob.
-            // For a true .docx file, a library like docx.js would be needed, but this is a good prototype step.
-            const blob = new Blob([letterContent], { type: 'application/msword' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = `BullyAI_Dispute_Letter_${stepKey}.doc`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-
-        // Handle Enter key for sending message
-        document.getElementById('user-input').addEventListener('keydown', function(event) {
-            if (event.key === 'Enter' && !event.shiftKey) {
-                event.preventDefault();
-                sendMessage();
-            }
+        const response = await fetch(apiUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify(payload),
         });
 
+        if (!response.ok) {
+          const errorBody = await response.text();
+          throw new Error(
+            `API request failed with status ${response.status}: ${errorBody}`
+          );
+        }
+
+        const result = await response.json();
+        const jsonString = result.choices[0].message.content;
+
+        // Sometimes the model might wrap the JSON in markdown, so we clean it.
+        const cleanedJsonString = jsonString.replace(/^```json\n|```$/g, "");
+        return JSON.parse(cleanedJsonString);
+      }
+
+      function downloadLetter(stepKey) {
+        const letterContent = generatedLetters[stepKey];
+        if (!letterContent) {
+          alert("Letter content not available.");
+          return;
+        }
+
+        // This is a simplified "download as Word" using a Blob.
+        // For a true .docx file, a library like docx.js would be needed, but this is a good prototype step.
+        const blob = new Blob([letterContent], { type: "application/msword" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `BullyAI_Dispute_Letter_${stepKey}.doc`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+
+      // Handle Enter key for sending message
+      document
+        .getElementById("user-input")
+        .addEventListener("keydown", function (event) {
+          if (event.key === "Enter" && !event.shiftKey) {
+            event.preventDefault();
+            sendMessage();
+          }
+        });
     </script>
-</body>
+  </body>
 </html>
