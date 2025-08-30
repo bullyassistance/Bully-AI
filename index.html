@@ -29,17 +29,21 @@
         color: #1f2937; /* gray-800 */
       }
       /* Scrollbar styles for webkit browsers */
-      #chat-container::-webkit-scrollbar {
+      #chat-container::-webkit-scrollbar,
+      #analysis-output::-webkit-scrollbar {
         width: 8px;
       }
-      #chat-container::-webkit-scrollbar-track {
+      #chat-container::-webkit-scrollbar-track,
+      #analysis-output::-webkit-scrollbar-track {
         background: #f1f1f1;
       }
-      #chat-container::-webkit-scrollbar-thumb {
+      #chat-container::-webkit-scrollbar-thumb,
+      #analysis-output::-webkit-scrollbar-thumb {
         background: #888;
         border-radius: 4px;
       }
-      #chat-container::-webkit-scrollbar-thumb:hover {
+      #chat-container::-webkit-scrollbar-thumb:hover,
+      #analysis-output::-webkit-scrollbar-thumb:hover {
         background: #555;
       }
       .loader {
@@ -128,25 +132,25 @@
           <h4 class="font-semibold mb-2">Download Your Dispute Letters</h4>
           <div class="flex flex-col sm:flex-row gap-2">
             <button
-              onclick="downloadLetter('step1')"
+              onclick="openLeadCaptureModal('step1')"
               class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-300 text-sm w-full"
             >
               Step 1: CRA Dispute
             </button>
             <button
-              onclick="downloadLetter('step2')"
+              onclick="openLeadCaptureModal('step2')"
               class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-300 text-sm w-full"
             >
-              Step 2: MOV Request
+              Step 2: MOV & ACDV Request
             </button>
             <button
-              onclick="downloadLetter('step3')"
+              onclick="openLeadCaptureModal('step3')"
               class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-300 text-sm w-full"
             >
               Step 3: Furnisher Letter
             </button>
             <button
-              onclick="downloadLetter('step4')"
+              onclick="openLeadCaptureModal('step4')"
               class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-300 text-sm w-full"
             >
               Step 4: Demand Letter
@@ -208,11 +212,76 @@
       </div>
     </div>
 
+    <!-- Lead Capture Modal -->
+    <div
+      id="lead-capture-modal"
+      class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center"
+    >
+      <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
+        <h2 class="text-2xl font-bold mb-4">Enter Your Information</h2>
+        <p class="text-gray-600 mb-6">
+          Please provide your details to personalize and download your dispute
+          letter.
+        </p>
+        <form id="lead-capture-form" onsubmit="handleLeadCaptureSubmit(event)">
+          <div class="space-y-4">
+            <input
+              type="text"
+              id="user-name"
+              placeholder="Full Name"
+              class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            />
+            <input
+              type="tel"
+              id="user-phone"
+              placeholder="Phone Number"
+              class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            />
+            <input
+              type="email"
+              id="user-email"
+              placeholder="Email Address"
+              class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            />
+            <textarea
+              id="user-address"
+              placeholder="Full Mailing Address"
+              rows="3"
+              class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              required
+            ></textarea>
+          </div>
+          <div class="mt-6 flex justify-end space-x-4">
+            <button
+              type="button"
+              onclick="closeLeadCaptureModal()"
+              class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold"
+            >
+              Submit & Download
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <script>
       // Store generated letters to enable download
       let generatedLetters = {};
       // Store file objects ready for upload
       let stagedFiles = [];
+      // Store user data from lead capture form
+      let userData = null;
+      // Keep track of which download was clicked
+      let currentDownloadStep = null;
 
       function appendMessage(text, sender) {
         const chatContainer = document.getElementById("chat-container");
@@ -261,13 +330,8 @@
       function handleFileUpload(event) {
         const newFiles = event.target.files;
         if (!newFiles || newFiles.length === 0) return;
-
-        // Add new files to the staged files array
         stagedFiles.push(...Array.from(newFiles));
-
         updateStagedFilesUI();
-
-        // Reset the file input so the 'change' event fires even if the same file is selected again
         event.target.value = "";
       }
 
@@ -275,25 +339,20 @@
         const fileNameContainer = document.getElementById(
           "file-name-container"
         );
-        // Always clear the container first
         fileNameContainer.innerHTML = "";
-
         if (stagedFiles.length > 0) {
           stagedFiles.forEach((file, index) => {
             const fileTag = document.createElement("div");
             fileTag.className =
               "inline-flex items-center bg-gray-200 text-gray-800 text-xs font-medium px-2.5 py-1 rounded-full";
-
             const fileName = document.createElement("span");
             fileName.textContent = file.name;
-
             const removeBtn = document.createElement("button");
             removeBtn.className =
               "ml-2 text-gray-500 hover:text-gray-900 remove-file-btn";
-            removeBtn.innerHTML = "&times;"; // The 'x' character
+            removeBtn.innerHTML = "&times;";
             removeBtn.setAttribute("aria-label", `Remove ${file.name}`);
             removeBtn.onclick = () => removeStagedFile(index);
-
             fileTag.appendChild(fileName);
             fileTag.appendChild(removeBtn);
             fileNameContainer.appendChild(fileTag);
@@ -302,37 +361,26 @@
       }
 
       function removeStagedFile(index) {
-        // Remove the file at the specified index
         stagedFiles.splice(index, 1);
-        // Update the UI to reflect the change
         updateStagedFilesUI();
       }
 
       async function sendMessage() {
         const userInput = document.getElementById("user-input");
         const reportText = userInput.value.trim();
-
         if (stagedFiles.length === 0 && !reportText) return;
 
-        // 1. Determine the user's message and append it FIRST.
-        let userMessageText = "";
-        if (reportText) {
-          userMessageText = `Analyzing pasted text and ${stagedFiles.length} uploaded file(s).`;
-        } else {
-          userMessageText = `Analyzing ${
-            stagedFiles.length
-          } uploaded file(s): ${stagedFiles.map((f) => f.name).join(", ")}`;
-        }
+        let userMessageText = reportText
+          ? `Analyzing pasted text and ${stagedFiles.length} uploaded file(s).`
+          : `Analyzing ${stagedFiles.length} uploaded file(s): ${stagedFiles
+              .map((f) => f.name)
+              .join(", ")}`;
         appendMessage(userMessageText, "user");
 
-        // 2. NOW, show the loading indicator and disable the button.
         showLoadingIndicator();
         document.getElementById("send-button").disabled = true;
 
-        // 3. Create a copy of the files to process before clearing the UI state.
         const filesToProcess = [...stagedFiles];
-
-        // 4. Clear the input fields for the next message.
         userInput.value = "";
         stagedFiles = [];
         updateStagedFilesUI();
@@ -346,18 +394,16 @@
                 pdfjsLib
                   .getDocument(typedarray)
                   .promise.then((pdf) => {
-                    let pdfText = "";
-                    const pagePromises = [];
-                    for (let i = 1; i <= pdf.numPages; i++) {
-                      pagePromises.push(
-                        pdf.getPage(i).then((page) => page.getTextContent())
-                      );
-                    }
+                    const pagePromises = Array.from(
+                      { length: pdf.numPages },
+                      (_, i) =>
+                        pdf.getPage(i + 1).then((page) => page.getTextContent())
+                    );
                     Promise.all(pagePromises)
                       .then((textContents) => {
-                        pdfText = textContents
-                          .map((textContent) =>
-                            textContent.items.map((s) => s.str).join(" ")
+                        const pdfText = textContents
+                          .map((tc) =>
+                            tc.items.map((item) => item.str).join(" ")
                           )
                           .join("\n\n");
                         resolve({ name: file.name, content: pdfText });
@@ -366,41 +412,30 @@
                   })
                   .catch(reject);
               } else {
-                // Assuming .txt
                 resolve({ name: file.name, content: e.target.result });
               }
             };
             reader.onerror = reject;
-
-            if (file.type === "application/pdf") {
-              reader.readAsArrayBuffer(file);
-            } else {
-              reader.readAsText(file);
-            }
+            if (file.type === "application/pdf") reader.readAsArrayBuffer(file);
+            else reader.readAsText(file);
           });
         });
 
         try {
           const fileContents = await Promise.all(fileReadPromises);
-
           let combinedContent = fileContents
             .map(
               (result) =>
                 `--- START OF FILE: ${result.name} ---\n\n${result.content}\n\n--- END OF FILE: ${result.name} ---`
             )
             .join("\n\n");
-
           if (reportText) {
             if (combinedContent) combinedContent += "\n\n";
             combinedContent += `--- START OF PASTED TEXT ---\n\n${reportText}\n\n--- END OF PASTED TEXT ---`;
           }
 
-          // Call the DeepSeek API
           const analysisResult = await getAIAnalysis(combinedContent);
-
           removeLoadingIndicator();
-
-          // Display the results in the dedicated output area
           displayAnalysis(analysisResult);
         } catch (error) {
           removeLoadingIndicator();
@@ -418,11 +453,8 @@
         const analysisOutput = document.getElementById("analysis-output");
         const analysisContent = document.getElementById("analysis-content");
         const downloadSection = document.getElementById("download-section");
-
-        // Store letters for download
         generatedLetters = result.letters;
 
-        // Safely format the currency
         const formatCurrency = (amount) =>
           new Intl.NumberFormat("en-US", {
             style: "currency",
@@ -437,29 +469,24 @@
             ? formatCurrency(result.caseValue.highEnd)
             : "$0";
 
-        let htmlContent = `
+        analysisContent.innerHTML = `
                 <div class="bg-white p-3 rounded-lg border">
                     <h4 class="font-semibold text-gray-800">Identified Issues:</h4>
-                    <ul class="list-disc list-inside mt-1 text-gray-600">
-                        ${result.issues
-                          .map(
-                            (issue) =>
-                              `<li><strong>${issue.type}:</strong> ${issue.description} (Account: ${issue.account})</li>`
-                          )
-                          .join("")}
-                    </ul>
+                    <ul class="list-disc list-inside mt-1 text-gray-600">${result.issues
+                      .map(
+                        (issue) =>
+                          `<li><strong>${issue.type}:</strong> ${issue.description} (Account: ${issue.account})</li>`
+                      )
+                      .join("")}</ul>
                 </div>
-
                 <div class="bg-white p-3 rounded-lg border">
                     <h4 class="font-semibold text-gray-800">Case Value Estimate (Willful Violation):</h4>
                     <p class="mt-1 text-gray-600">Based on similar FCRA cases, the potential statutory and punitive damages could range from <strong class="text-blue-600">${lowEnd} to ${highEnd}</strong>. This is an informational estimate, not a guarantee of outcome or legal advice.</p>
                 </div>
-
                 <div class="bg-white p-3 rounded-lg border">
                     <h4 class="font-semibold text-gray-800">Overall Strategy:</h4>
                     <p class="mt-1 text-gray-600">${result.strategy}</p>
                 </div>
-
                 <div class="bg-white p-3 rounded-lg border">
                     <h4 class="font-semibold text-gray-800">Step-by-Step Letter Sending Instructions:</h4>
                     <div class="mt-1 text-gray-600">${result.letterSendingInstructions.replace(
@@ -467,71 +494,61 @@
                       "<br>"
                     )}</div>
                 </div>
-
                 <div class="bg-white p-3 rounded-lg border">
                     <h4 class="font-semibold text-gray-800">Recommended Product:</h4>
                      <a href="${
                        result.productLink.url
-                     }" target="_blank" class="inline-block mt-2 bg-green-500 text-white px-3 py-1.5 rounded-md hover:bg-green-600 transition duration-300 text-sm font-semibold">
-                        ${result.productLink.text}
-                    </a>
-                </div>
-            `;
+                     }" target="_blank" class="inline-block mt-2 bg-green-500 text-white px-3 py-1.5 rounded-md hover:bg-green-600 transition duration-300 text-sm font-semibold">${
+          result.productLink.text
+        }</a>
+                </div>`;
 
-        analysisContent.innerHTML = htmlContent;
         analysisOutput.classList.remove("hidden");
         downloadSection.classList.remove("hidden");
-
-        // Scroll to the bottom to show the analysis
-        const chatContainer = document.getElementById("chat-container");
-        chatContainer.parentElement.scrollTop =
-          chatContainer.parentElement.scrollHeight;
+        analysisOutput.scrollTop = 0;
       }
 
       async function getAIAnalysis(reportText) {
-        // IMPORTANT: Replace with your actual DeepSeek API key from the client
         const apiKey = "sk-5eb8595f31c745f8963c0c1d839e498a";
         const apiUrl = "https://api.deepseek.com/v1/chat/completions";
 
         const systemPrompt = `You are "Bully AI," a consumer-law compliance assistant for credit report analysis. You are not a lawyer and do not provide legal advice. You provide information and document drafts for educational purposes. You must not hallucinate. If a fact or statute is uncertain, say: "Unable to verify - legal research required." Your name is Bully AI.
 
-            Your task is to analyze the provided credit report text, identify potential inaccuracies under the Fair Credit Reporting Act (FCRA), and generate a JSON object containing the analysis and four dispute letters. The user may provide text from multiple credit reports concatenated together; analyze all information comprehensively, noting which report a discrepancy comes from if possible.
+            Your task is to analyze provided credit report text, identify inaccuracies under the FCRA, and generate a JSON object with your analysis and four dispute letters.
+
+            **New Rule: Letter Detail**: The generated letters must be comprehensive, detailed, and professional. They should thoroughly explain the nature of the dispute based on the identified issues, reference relevant parts of the FCRA, and clearly state the desired outcome. Do not use generic, short templates. Fill in specific details from the analysis. The letters must include the following placeholders for user data: [Your Name], [Your Address], [Your Phone Number], [Your Email], and [Date].
 
             Analysis Flow:
-            1.  Parse tradelines and identify inaccuracies like conflicting dates (DOFD, DOLP), incorrect balances, duplicate accounts, etc.
-            2.  **Case Value Range:** Provide an informational case-value as a monetary range based on readily available data for willful FCRA violations. This should be an object with "lowEnd" and "highEnd" keys.
-            3.  **Overall Strategy:** Outline a brief, high-level dispute strategy.
-            4.  **Step-by-Step Instructions:** Provide a detailed, step-by-step guide for sending the letters, including timelines (e.g., "Send Step 1 via certified mail. Wait 30-45 days. If no resolution, send Step 2.").
+            1.  Parse tradelines and identify inaccuracies.
+            2.  Provide a case-value monetary range for willful violations (e.g., { "lowEnd": 1000, "highEnd": 5000 }).
+            3.  Outline a brief, high-level dispute strategy.
+            4.  Provide a detailed, step-by-step guide for sending the letters, including timelines.
             5.  Recommend a product with a link.
-            6.  Draft four letters based on the templates below. Ensure placeholders like [Your Name], [Date], etc., are present.
+            6.  Draft four detailed letters based on the templates below.
 
             Letter Templates:
-            -   Step 1 (Dispute to CRA): Formal letter to the credit reporting agency (CRA) identifying the inaccurate item and requesting a reinvestigation under 15 U.S.C. § 1681i.
-            -   Step 2 (MOV Request to CRA): Letter to the CRA requesting the Method of Verification for a previously disputed item that was verified, as per 15 U.S.C. § 1681i(a)(6)(B)(iii).
-            -   Step 3 (Direct Letter to Furnisher): Letter sent directly to the creditor or debt collector (the furnisher) disputing the information they are providing to the CRAs.
-            -   Step 4 (Demand Letter): A more formal demand letter citing noncompliance with FCRA after previous attempts to correct the information have failed.
+            -   Step 1 (Dispute to CRA): Formal letter to the CRA identifying the inaccurate item(s) and requesting reinvestigation under 15 U.S.C. § 1681i.
+            -   **Step 2 (MOV & ACDV Request to CRA):** Letter to the CRA requesting the **Method of Verification AND the ACDV (Automated Consumer Dispute Verification) record** for a previously disputed item that was verified, as per 15 U.S.C. § 1681i(a)(6)(B)(iii).
+            -   Step 3 (Direct Letter to Furnisher): Letter to the creditor or debt collector disputing the information they are providing.
+            -   Step 4 (Demand Letter): A formal demand letter citing noncompliance with FCRA.
 
-            Output Format: Respond ONLY with a valid JSON object. Do not include any text before or after the JSON.
+            Output Format: Respond ONLY with a valid JSON object.
 
             Example JSON structure:
             {
-              "issues": [
-                { "account": "XYZ Card / #...1234", "type": "Inaccurate Date of First Delinquency", "description": "Experian report shows DOFD as 01/2022, but TransUnion shows 03/2022." }
-              ],
+              "issues": [ { "account": "XYZ Card / #...1234", "type": "Inaccurate DOFD", "description": "Experian shows DOFD as 01/2022, TransUnion shows 03/2022." } ],
               "caseValue": { "lowEnd": 1000, "highEnd": 5000 },
-              "strategy": "The primary inconsistency is the conflicting DOFD. We will challenge this with all bureaus and then the original creditor if necessary.",
-              "letterSendingInstructions": "1. Send the 'Step 1: CRA Dispute' letter to all three credit bureaus via certified mail immediately.\\n2. The bureaus have 30-45 days to respond. Wait for their investigation results.\\n3. If the item is not deleted, send the 'Step 2: MOV Request' letter to the bureaus that verified the debt.\\n4. Simultaneously, send the 'Step 3: Furnisher Letter' to the original creditor.",
+              "strategy": "The primary inconsistency is the conflicting DOFD. We will challenge this with all bureaus.",
+              "letterSendingInstructions": "1. Send the 'Step 1: CRA Dispute' letter to all three credit bureaus via certified mail immediately.\\n2. The bureaus have 30-45 days to respond...",
               "productLink": { "text": "Purchase Our Advanced Dispute Toolkit", "url": "https://www.thebureaubullies.com/product-link" },
               "letters": {
-                "step1": "[Your Name]\\n[Your Address]\\n[Date]\\n\\nCredit Bureau Name\\nBureau Address\\n\\nSubject: Formal Dispute of Inaccurate Information - Account #...1234\\n\\nTo Whom It May Concern,\\n\\nI am writing to dispute the following information...",
-                "step2": "Step 2 Letter Content...",
-                "step3": "Step 3 Letter Content...",
-                "step4": "Step 4 Letter Content..."
+                "step1": "[Your Name]\\n[Your Address]\\n[Your Phone Number]\\n[Your Email]\\n\\n[Date]\\n\\nCredit Bureau Name\\nBureau Address\\n\\nSubject: Formal Dispute... based on the inaccurate DOFD found...",
+                "step2": "...", "step3": "...", "step4": "..."
               }
             }`;
 
         const payload = {
-          model: "deepseek-chat", // This is the most advanced model for chat and reasoning.
+          model: "deepseek-chat",
           messages: [
             { role: "system", content: systemPrompt },
             {
@@ -551,30 +568,66 @@
           body: JSON.stringify(payload),
         });
 
-        if (!response.ok) {
-          const errorBody = await response.text();
+        if (!response.ok)
           throw new Error(
-            `API request failed with status ${response.status}: ${errorBody}`
+            `API request failed: ${response.status} ${await response.text()}`
           );
-        }
-
         const result = await response.json();
         const jsonString = result.choices[0].message.content;
-
-        // Sometimes the model might wrap the JSON in markdown, so we clean it.
         const cleanedJsonString = jsonString.replace(/^```json\n|```$/g, "");
         return JSON.parse(cleanedJsonString);
       }
 
+      function openLeadCaptureModal(stepKey) {
+        currentDownloadStep = stepKey;
+        document
+          .getElementById("lead-capture-modal")
+          .classList.remove("hidden");
+      }
+
+      function closeLeadCaptureModal() {
+        document.getElementById("lead-capture-modal").classList.add("hidden");
+      }
+
+      function handleLeadCaptureSubmit(event) {
+        event.preventDefault();
+        userData = {
+          name: document.getElementById("user-name").value,
+          phone: document.getElementById("user-phone").value,
+          email: document.getElementById("user-email").value,
+          address: document.getElementById("user-address").value,
+        };
+        downloadLetter(currentDownloadStep);
+        closeLeadCaptureModal();
+        document.getElementById("lead-capture-form").reset();
+      }
+
       function downloadLetter(stepKey) {
-        const letterContent = generatedLetters[stepKey];
-        if (!letterContent) {
-          alert("Letter content not available.");
+        if (!userData) {
+          openLeadCaptureModal(stepKey);
           return;
         }
 
-        // This is a simplified "download as Word" using a Blob.
-        // For a true .docx file, a library like docx.js would be needed, but this is a good prototype step.
+        let letterContent = generatedLetters[stepKey];
+        if (!letterContent) {
+          console.error("Letter content not available for step:", stepKey);
+          alert("Sorry, the content for this letter could not be generated.");
+          return;
+        }
+
+        // Replace placeholders
+        const today = new Date().toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        });
+        letterContent = letterContent
+          .replace(/\[Your Name\]/g, userData.name)
+          .replace(/\[Your Address\]/g, userData.address)
+          .replace(/\[Your Phone Number\]/g, userData.phone)
+          .replace(/\[Your Email\]/g, userData.email)
+          .replace(/\[Date\]/g, today);
+
         const blob = new Blob([letterContent], { type: "application/msword" });
         const link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
@@ -584,7 +637,6 @@
         document.body.removeChild(link);
       }
 
-      // Handle Enter key for sending message
       document
         .getElementById("user-input")
         .addEventListener("keydown", function (event) {
