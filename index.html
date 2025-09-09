@@ -15,117 +15,116 @@
     </script>
     <link rel="stylesheet" href="styles.css" />
     <script src="prompt.js"></script>
+    <style>
+      /* Custom styles to match the new design */
+      html,
+      body {
+        background-color: #000; /* Fallback for the background image */
+        height: 100%;
+        width: 100%;
+        overflow: hidden; /* Prevents scrollbars on the body */
+      }
+      .main-container {
+        background-image: url("images/text-bg-img.jpg"); /* Background image here */
+        background-size: cover;
+        background-position: center center;
+        position: relative; /* Needed for absolute positioning of overlay */
+        display: flex; /* Ensure flex properties remain */
+        flex-direction: column;
+        height: 100vh; /* Full viewport height */
+      }
+      .background-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(
+          255,
+          255,
+          255,
+          0.2
+        ); /* Light white overlay (20% opacity) */
+        z-index: 1; /* Ensure overlay is behind content */
+      }
+      .content-wrapper {
+        position: relative; /* Position content above the overlay */
+        z-index: 2; /* Higher z-index than overlay */
+        display: flex;
+        flex-direction: column;
+        flex: 1; /* Allow content wrapper to take available space */
+        min-height: 0; /* Important for flex + overflow */
+      }
+
+      .text-clipper {
+        background-image: url("images/text-bg-img.jpg");
+        background-size: cover;
+        background-position: center;
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      .chat-bubble-ai {
+        background-color: rgba(0, 0, 0, 0.6);
+        color: #f3f4f6;
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      .chat-bubble-user {
+        background-color: rgba(0, 0, 0, 0.6);
+        color: #ffffff;
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+      .file-tag {
+        background-color: rgba(255, 255, 255, 0.1);
+        color: #ffffff;
+        backdrop-filter: blur(5px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+      .file-tag .remove-file-btn {
+        color: #e5e7eb;
+      }
+      .file-tag .remove-file-btn:hover {
+        color: #fff;
+      }
+      #user-input::placeholder {
+        color: #9ca3af;
+      }
+    </style>
   </head>
-  <body class="bg-gray-100 flex items-center justify-center h-screen">
-    <div
-      class="w-full max-w-2xl h-full sm:h-[90vh] sm:max-h-[800px] bg-white rounded-lg shadow-2xl flex flex-col"
-    >
-      <!-- Header -->
-      <div
-        class="bg-gray-800 text-white p-4 rounded-t-lg flex items-center justify-between"
-      >
-        <div>
-          <h1 class="text-xl font-bold">Bully AI</h1>
-          <p class="text-sm text-gray-300">
-            Your Consumer-Law Compliance Assistant
-          </p>
-        </div>
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="32"
-          height="32"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          class="text-blue-400"
+  <body class="bg-black">
+    <div class="main-container w-full h-screen shadow-2xl">
+      <div class="background-overlay"></div>
+      <div class="content-wrapper">
+        <div
+          id="initial-view"
+          class="flex-1 flex flex-col items-center justify-center text-center p-4 text-white"
         >
-          <path d="M12 8V4H8" />
-          <rect x="4" y="4" width="16" height="16" rx="2" />
-          <path d="M2 14h2" />
-          <path d="M20 14h2" />
-          <path d="M15 2v2" />
-          <path d="M9 2v2" />
-        </svg>
-      </div>
-
-      <!-- Chat Container -->
-      <div id="chat-container" class="flex-1 p-4 overflow-y-auto space-y-4">
-        <!-- Initial Bot Message -->
-        <div class="flex justify-start">
-          <div class="chat-bubble chat-bubble-ai p-3 rounded-lg">
-            <p class="text-sm" id="opening-message">
-              Upload your 3-bureau credit reports (PDF recommended). I'll scan
-              for inconsistencies—DOFD, DOLP, charge-off dates, payment-history
-              conflicts, and more—then estimate potential case value if a
-              violation becomes willful and draft your letters for each step.
-              You'll get ready-to-mail docs after we confirm the details.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Analysis Output Container -->
-      <div
-        id="analysis-output"
-        class="hidden p-4 border-t bg-gray-50 overflow-y-auto"
-      >
-        <h3 class="font-bold text-lg mb-2">Analysis Complete</h3>
-        <div id="analysis-content" class="text-sm space-y-4"></div>
-        <div id="download-section" class="hidden mt-4">
-          <h4 class="font-semibold mb-2">Download Your Dispute Letters</h4>
-          <div class="flex flex-col sm:flex-row gap-2">
-            <button
-              onclick="openLeadCaptureModal('step1')"
-              class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-300 text-sm w-full"
-            >
-              Step 1: CRA Dispute
-            </button>
-            <button
-              onclick="openLeadCaptureModal('step2')"
-              class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-300 text-sm w-full"
-            >
-              Step 2: MOV & ACDV Request
-            </button>
-            <button
-              onclick="openLeadCaptureModal('step3')"
-              class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-300 text-sm w-full"
-            >
-              Step 3: Furnisher Letter
-            </button>
-            <button
-              onclick="openLeadCaptureModal('step4')"
-              class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-300 text-sm w-full"
-            >
-              Step 4: Demand Letter
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Input Area -->
-      <div class="p-4 border-t bg-gray-50 rounded-b-lg">
-        <div class="flex items-center space-x-2">
-          <input
-            type="file"
-            id="file-upload"
-            class="hidden"
-            accept=".pdf,.txt"
-            onchange="handleFileUpload(event)"
-            multiple
+          <img
+            src="images/badge.svg"
+            alt="Bully AI Logo"
+            class="w-48 h-48 md:w-56 md:h-56 mb-8"
           />
+          <div class="text-clipper">
+            <h1
+              class="text-5xl md:text-6xl font-bold tracking-wider leading-tight"
+            >
+              MY NAME IS<br />BULLY AI
+            </h1>
+            <h2 class="text-3xl md:text-4xl font-normal tracking-wide mt-4">
+              YOUR CREDIT ASSISTANT
+            </h2>
+          </div>
           <button
             onclick="document.getElementById('file-upload').click()"
-            class="p-2 text-gray-600 hover:text-blue-600 rounded-full hover:bg-gray-200 transition duration-300"
-            aria-label="Upload file"
+            class="mt-10 bg-black bg-opacity-25 border border-white/30 text-white px-6 py-3 rounded-lg flex items-center space-x-3 hover:bg-opacity-40 transition-colors duration-300"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
+              width="20"
+              height="20"
+              viewBox="0 0 24"
               fill="none"
               stroke="currentColor"
               stroke-width="2"
@@ -136,32 +135,86 @@
               <polyline points="17 8 12 3 7 8" />
               <line x1="12" y1="3" x2="12" y2="15" />
             </svg>
-          </button>
-          <textarea
-            id="user-input"
-            rows="1"
-            class="flex-1 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-            placeholder="Or paste credit report text here..."
-          ></textarea>
-          <button
-            id="send-button"
-            onclick="sendMessage()"
-            class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-300 font-semibold"
-          >
-            Analyze
+            <span>Upload your 3 Credit Reports</span>
           </button>
         </div>
+
         <div
-          id="file-name-container"
-          class="mt-2 flex flex-wrap items-center gap-2"
-        ></div>
+          id="chat-container"
+          class="hidden flex-1 p-4 overflow-y-auto space-y-4"
+        >
+          </div>
+
+        <div class="p-4 border-t border-white/20 bg-transparent">
+          <div
+            class="bg-black bg-opacity-40 rounded-lg flex items-center space-x-2 p-1"
+          >
+            <input
+              type="file"
+              id="file-upload"
+              class="hidden"
+              accept=".pdf,.txt"
+              onchange="handleFileUpload(event)"
+              multiple
+            />
+            <button
+              onclick="document.getElementById('file-upload').click()"
+              class="p-2 text-gray-300 hover:text-white rounded-full transition duration-300"
+              aria-label="Upload file"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+            </button>
+            <textarea
+              id="user-input"
+              rows="1"
+              class="flex-1 p-2 bg-transparent text-white border-none rounded-lg focus:outline-none focus:ring-0 resize-none"
+              placeholder="Send a message..."
+            ></textarea>
+            <button
+              id="send-button"
+              onclick="sendMessage()"
+              class="bg-transparent text-white p-2 rounded-lg hover:bg-white/10 transition duration-300"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+              </svg>
+            </button>
+          </div>
+          <div
+            id="file-name-container"
+            class="mt-2 flex flex-wrap items-center gap-2"
+          ></div>
+        </div>
       </div>
     </div>
 
-    <!-- Lead Capture Modal -->
     <div
       id="lead-capture-modal"
-      class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center"
+      class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50"
     >
       <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
         <h2 class="text-2xl font-bold mb-4">Enter Your Information</h2>
@@ -220,13 +273,9 @@
     </div>
 
     <script>
-      // Store generated letters to enable download
       let generatedLetters = {};
-      // Store file objects ready for upload
       let stagedFiles = [];
-      // Store user data from lead capture form
       let userData = null;
-      // Keep track of which download was clicked
       let currentDownloadStep = null;
 
       function appendMessage(text, sender) {
@@ -235,16 +284,13 @@
         messageDiv.className = `flex ${
           sender === "user" ? "justify-end" : "justify-start"
         }`;
-
         const bubble = document.createElement("div");
         bubble.className = `chat-bubble p-3 rounded-lg ${
           sender === "user" ? "chat-bubble-user" : "chat-bubble-ai"
         }`;
-
         const content = document.createElement("p");
         content.className = "text-sm";
         content.innerText = text;
-
         bubble.appendChild(content);
         messageDiv.appendChild(bubble);
         chatContainer.appendChild(messageDiv);
@@ -290,7 +336,7 @@
           stagedFiles.forEach((file, index) => {
             const fileTag = document.createElement("div");
             fileTag.className =
-              "inline-flex items-center bg-gray-200 text-gray-800 text-xs font-medium px-2.5 py-1 rounded-full";
+              "file-tag inline-flex items-center text-xs font-medium px-2.5 py-1 rounded-full";
             const fileName = document.createElement("span");
             fileName.textContent = file.name;
             const removeBtn = document.createElement("button");
@@ -316,12 +362,26 @@
         const reportText = userInput.value.trim();
         if (stagedFiles.length === 0 && !reportText) return;
 
+        const initialView = document.getElementById("initial-view");
+        const chatContainer = document.getElementById("chat-container");
+        if (!chatContainer.classList.contains("active-chat")) {
+          initialView.classList.add("hidden");
+          chatContainer.classList.remove("hidden");
+          chatContainer.classList.add("active-chat");
+          appendMessage(
+            "Upload your 3-bureau credit reports (PDF recommended). I'll scan for inconsistencies—DOFD, DOLP, charge-off dates, payment-history conflicts, and more—then estimate potential case value if a violation becomes willful and draft your letters for each step. You'll get ready-to-mail docs after we confirm the details.",
+            "ai"
+          );
+        }
+
         let userMessageText = reportText
           ? `Analyzing pasted text and ${stagedFiles.length} uploaded file(s).`
           : `Analyzing ${stagedFiles.length} uploaded file(s): ${stagedFiles
               .map((f) => f.name)
               .join(", ")}`;
-        appendMessage(userMessageText, "user");
+        if (stagedFiles.length > 0 || reportText) {
+          appendMessage(userMessageText, "user");
+        }
 
         showLoadingIndicator();
         document.getElementById("send-button").disabled = true;
@@ -362,7 +422,8 @@
               }
             };
             reader.onerror = reject;
-            if (file.type === "application/pdf") reader.readAsArrayBuffer(file);
+            if (file.type === "application/pdf")
+              reader.readAsArrayBuffer(file);
             else reader.readAsText(file);
           });
         });
@@ -396,9 +457,7 @@
       }
 
       function displayAnalysis(result) {
-        const analysisOutput = document.getElementById("analysis-output");
-        const analysisContent = document.getElementById("analysis-content");
-        const downloadSection = document.getElementById("download-section");
+        const chatContainer = document.getElementById("chat-container");
         generatedLetters = result.letters;
 
         const formatCurrency = (amount) =>
@@ -415,43 +474,58 @@
             ? formatCurrency(result.caseValue.highEnd)
             : "$0";
 
-        analysisContent.innerHTML = `
-                <div class="bg-white p-3 rounded-lg border">
-                    <h4 class="font-semibold text-gray-800">Identified Issues:</h4>
-                    <ul class="list-disc list-inside mt-1 text-gray-600">${result.issues
-                      .map(
-                        (issue) =>
-                          `<li><strong>${issue.type}:</strong> ${issue.description} (Account: ${issue.account})</li>`
-                      )
-                      .join("")}</ul>
-                </div>
-                <div class="bg-white p-3 rounded-lg border">
-                    <h4 class="font-semibold text-gray-800">Case Value Estimate (Willful Violation):</h4>
-                    <p class="mt-1 text-gray-600">Based on similar FCRA cases, the potential statutory and punitive damages could range from <strong class="text-blue-600">${lowEnd} to ${highEnd}</strong>. This is an informational estimate, not a guarantee of outcome or legal advice.</p>
-                </div>
-                <div class="bg-white p-3 rounded-lg border">
-                    <h4 class="font-semibold text-gray-800">Overall Strategy:</h4>
-                    <p class="mt-1 text-gray-600">${result.strategy}</p>
-                </div>
-                <div class="bg-white p-3 rounded-lg border">
-                    <h4 class="font-semibold text-gray-800">Step-by-Step Letter Sending Instructions:</h4>
-                    <div class="mt-1 text-gray-600">${result.letterSendingInstructions.replace(
-                      /\n/g,
-                      "<br>"
-                    )}</div>
-                </div>
-                <div class="bg-white p-3 rounded-lg border">
-                    <h4 class="font-semibold text-gray-800">Recommended Product:</h4>
-                     <a href="${
-                       result.productLink.url
-                     }" target="_blank" class="inline-block mt-2 bg-green-500 text-white px-3 py-1.5 rounded-md hover:bg-green-600 transition duration-300 text-sm font-semibold">${
+        const analysisContainer = document.createElement("div");
+        analysisContainer.className =
+          "chat-bubble chat-bubble-ai p-4 rounded-lg";
+        analysisContainer.innerHTML = `
+          <h3 class="font-bold text-lg mb-2 text-white">Analysis Complete</h3>
+          <div class="text-sm space-y-4">
+              <div class="bg-white/10 backdrop-blur-sm p-3 rounded-lg border border-white/20 text-white">
+                  <h4 class="font-semibold text-gray-100">Identified Issues:</h4>
+                  <ul class="list-disc list-inside mt-1 text-gray-300">${result.issues
+                    .map(
+                      (issue) =>
+                        `<li><strong>${issue.type}:</strong> ${issue.description} (Account: ${issue.account})</li>`
+                    )
+                    .join("")}</ul>
+              </div>
+              <div class="bg-white/10 backdrop-blur-sm p-3 rounded-lg border border-white/20 text-white">
+                  <h4 class="font-semibold text-gray-100">Case Value Estimate (Willful Violation):</h4>
+                  <p class="mt-1 text-gray-300">Based on similar FCRA cases, the potential statutory and punitive damages could range from <strong class="text-blue-400">${lowEnd} to ${highEnd}</strong>. This is an informational estimate, not a guarantee of outcome or legal advice.</p>
+              </div>
+              <div class="bg-white/10 backdrop-blur-sm p-3 rounded-lg border border-white/20 text-white">
+                  <h4 class="font-semibold text-gray-100">Overall Strategy:</h4>
+                  <p class="mt-1 text-gray-300">${result.strategy}</p>
+              </div>
+              <div class="bg-white/10 backdrop-blur-sm p-3 rounded-lg border border-white/20 text-white">
+                  <h4 class="font-semibold text-gray-100">Step-by-Step Letter Sending Instructions:</h4>
+                  <div class="mt-1 text-gray-300">${result.letterSendingInstructions.replace(
+                    /\n/g,
+                    "<br>"
+                  )}</div>
+              </div>
+              <div class="bg-white/10 backdrop-blur-sm p-3 rounded-lg border border-white/20 text-white">
+                  <h4 class="font-semibold text-gray-100">Recommended Product:</h4>
+                   <a href="${
+                     result.productLink.url
+                   }" target="_blank" class="inline-block mt-2 bg-green-500 text-white px-3 py-1.5 rounded-md hover:bg-green-600 transition duration-300 text-sm font-semibold">${
           result.productLink.text
         }</a>
-                </div>`;
+              </div>
+          </div>
+          <div class="mt-4">
+              <h4 class="font-semibold mb-2 text-white">Download Your Dispute Letters</h4>
+              <div class="flex flex-col sm:flex-row gap-2">
+                  <button onclick="openLeadCaptureModal('step1')" class="bg-black bg-opacity-25 border border-white/30 text-white px-4 py-2 rounded-lg hover:bg-opacity-40 transition duration-300 text-sm w-full">Step 1: CRA Dispute</button>
+                  <button onclick="openLeadCaptureModal('step2')" class="bg-black bg-opacity-25 border border-white/30 text-white px-4 py-2 rounded-lg hover:bg-opacity-40 transition duration-300 text-sm w-full">Step 2: MOV & ACDV Request</button>
+                  <button onclick="openLeadCaptureModal('step3')" class="bg-black bg-opacity-25 border border-white/30 text-white px-4 py-2 rounded-lg hover:bg-opacity-40 transition duration-300 text-sm w-full">Step 3: Furnisher Letter</button>
+                  <button onclick="openLeadCaptureModal('step4')" class="bg-black bg-opacity-25 border border-white/30 text-white px-4 py-2 rounded-lg hover:bg-opacity-40 transition duration-300 text-sm w-full">Step 4: Demand Letter</button>
+              </div>
+          </div>
+        `;
 
-        analysisOutput.classList.remove("hidden");
-        downloadSection.classList.remove("hidden");
-        analysisOutput.scrollTop = 0;
+        chatContainer.appendChild(analysisContainer);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
       }
 
       async function getAIAnalysis(reportText, onToken) {
@@ -488,7 +562,6 @@
           throw new Error(`API request failed: ${response.status} ${errText}`);
         }
 
-        // Read SSE stream and accumulate content
         const reader = response.body.getReader();
         const decoder = new TextDecoder("utf-8");
         let buffer = "";
@@ -501,7 +574,6 @@
           buffer += decoder.decode(value, { stream: true });
 
           const lines = buffer.split(/\r?\n/);
-          // keep last partial line in buffer
           buffer = lines.pop() || "";
 
           for (const line of lines) {
@@ -510,7 +582,6 @@
             if (trimmed.startsWith("data:")) {
               const dataStr = trimmed.slice(5).trim();
               if (dataStr === "[DONE]") {
-                // Finish reading
                 buffer = "";
                 finished = true;
                 break;
@@ -520,7 +591,6 @@
                 const delta = evt?.choices?.[0]?.delta;
                 if (delta && typeof delta.content === "string") {
                   fullText += delta.content;
-                  // emit streamed token(s) to optional callback
                   emit(delta.content);
                 }
               } catch (e) {
@@ -572,7 +642,6 @@
           return;
         }
 
-        // Replace placeholders
         const today = new Date().toLocaleDateString("en-US", {
           year: "numeric",
           month: "long",
@@ -585,7 +654,9 @@
           .replace(/\[Your Email\]/g, userData.email)
           .replace(/\[Date\]/g, today);
 
-        const blob = new Blob([letterContent], { type: "application/msword" });
+        const blob = new Blob([letterContent], {
+          type: "application/msword",
+        });
         const link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
         link.download = `BullyAI_Dispute_Letter_${stepKey}.doc`;
