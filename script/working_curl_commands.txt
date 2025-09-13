@@ -1,0 +1,87 @@
+# WORKING GoHighLevel API cURL Commands
+
+## ✅ CONFIRMED WORKING - Use these exact commands:
+
+### 1. GET All Contacts
+```bash
+curl -X GET "https://rest.gohighlevel.com/v1/contacts/" \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsb2NhdGlvbl9pZCI6Im1lWDBFcnk0YUJXdGpHME1HMFR1IiwidmVyc2lvbiI6MSwiaWF0IjoxNzU3NzQ1OTc5NjcyLCJzdWIiOiJNNThpeGpnSWdtb2doRXBYNVJ1ViJ9.kBGx9-dPuTraGnga-WG-_CMmjE1DCthkYjRCmbEGus0" \
+  -H "Version: 2021-07-28" \
+  -H "Accept: application/json"
+```
+
+### 2. POST New Contact
+```bash
+curl -X POST "https://rest.gohighlevel.com/v1/contacts/" \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsb2NhdGlvbl9pZCI6Im1lWDBFcnk0YUJXdGpHME1HMFR1IiwidmVyc2lvbiI6MSwiaWF0IjoxNzU3NzQ1OTc5NjcyLCJzdWIiOiJNNThpeGpnSWdtb2doRXBYNVJ1ViJ9.kBGx9-dPuTraGnga-WG-_CMmjE1DCthkYjRCmbEGus0" \
+  -H "Version: 2021-07-28" \
+  -H "Accept: application/json" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Test Contact",
+    "email": "test.contact@youremail.com",
+    "phone": "+12345678900",
+    "tags": ["FREE AI"],
+    "source": "cURL API Test"
+  }'
+```
+
+### 3. GET Contacts with Pagination (first 5)
+```bash
+curl -X GET "https://rest.gohighlevel.com/v1/contacts/?limit=5" \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsb2NhdGlvbl9pZCI6Im1lWDBFcnk0YUJXdGpHME1HMFR1IiwidmVyc2lvbiI6MSwiaWF0IjoxNzU3NzQ1OTc5NjcyLCJzdWIiOiJNNThpeGpnSWdtb2doRXBYNVJ1ViJ9.kBGx9-dPuTraGnga-WG-_CMmjE1DCthkYjRCmbEGus0" \
+  -H "Version: 2021-07-28" \
+  -H "Accept: application/json"
+```
+
+## 🔑 Key Points:
+
+1. **Base URL**: `https://rest.gohighlevel.com` (NOT services.leadconnectorhq.com)
+2. **Endpoint**: `/v1/contacts/` (with trailing slash)
+3. **Version Header**: `2021-07-28`
+4. **Authorization**: Bearer token (JWT format)
+5. **Content-Type**: `application/json` for POST requests
+
+## ✅ Test Results:
+- GET: HTTP 200 ✅
+- POST: HTTP 200 ✅
+- Contact created successfully ✅
+- All data properly formatted ✅
+
+## 🚫 What DOESN'T work:
+- `services.leadconnectorhq.com` (404 errors)
+- `api.leadconnectorhq.com` (404 errors)
+- Missing trailing slash in endpoint
+- Wrong version header
+
+## 📊 Response Examples:
+
+### Successful GET Response:
+```json
+{
+  "contacts": [...],
+  "meta": {
+    "total": 1159,
+    "currentPage": 1,
+    "nextPage": 2
+  }
+}
+```
+
+### Successful POST Response:
+```json
+{
+  "contact": {
+    "id": "contact_id_here",
+    "firstName": "Test",
+    "lastName": "Contact",
+    "email": "test.contact@youremail.com",
+    "phone": "+12345678900",
+    "tags": ["free ai"],
+    "source": "cURL API Test"
+  }
+}
+```
+
+---
+**Status**: ✅ WORKING - All commands tested and confirmed working!

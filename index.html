@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Bully AI - Credit Report Assistant</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <script src="https://cdn.tailwindcss.com"></script>
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
@@ -15,6 +16,7 @@
     </script>
     <link rel="stylesheet" href="styles.css" />
     <script src="prompt.js"></script>
+    <script src="ghl-integration.js"></script>
     <style>
       /* Custom styles to match the new design */
       html,
@@ -616,7 +618,7 @@
         document.getElementById("lead-capture-modal").classList.add("hidden");
       }
 
-      function handleLeadCaptureSubmit(event) {
+      async function handleLeadCaptureSubmit(event) {
         event.preventDefault();
         userData = {
           name: document.getElementById("user-name").value,
@@ -624,6 +626,19 @@
           email: document.getElementById("user-email").value,
           address: document.getElementById("user-address").value,
         };
+        
+        // Save to GoHighLevel contact list
+        try {
+          const ghlSuccess = await window.GHLIntegration.handleGHLFormSubmission(userData);
+          if (ghlSuccess) {
+            console.log('Contact successfully saved to GHL FREE AI list');
+          }
+        } catch (error) {
+          console.error('GHL integration error:', error);
+          // Continue with download even if GHL fails
+        }
+        
+        // Proceed with letter download
         downloadLetter(currentDownloadStep);
         closeLeadCaptureModal();
         document.getElementById("lead-capture-form").reset();
