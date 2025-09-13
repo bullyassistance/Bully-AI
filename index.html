@@ -34,6 +34,7 @@
         display: flex; /* Ensure flex properties remain */
         flex-direction: column;
         height: 100vh; /* Full viewport height */
+        min-height: 100vh; /* Ensure minimum height */
       }
       .background-overlay {
         position: absolute;
@@ -93,6 +94,59 @@
       #user-input::placeholder {
         color: #9ca3af;
       }
+      
+      /* Mobile-specific improvements */
+      @media (max-width: 640px) {
+        .main-container {
+          padding-bottom: env(safe-area-inset-bottom);
+        }
+        .content-wrapper {
+          padding-bottom: 1rem;
+        }
+        .text-clipper h1 {
+          line-height: 1.1;
+        }
+        .text-clipper h2 {
+          line-height: 1.2;
+        }
+      }
+      
+      /* Desktop-specific improvements */
+      @media (min-width: 641px) {
+        .content-wrapper {
+          padding-bottom: 0.5rem;
+          min-height: calc(100vh - 1rem);
+        }
+        .main-container {
+          padding-bottom: 0.5rem;
+        }
+        #user-input {
+          font-size: 16px;
+        }
+        #user-input::placeholder {
+          font-size: 16px;
+        }
+        .input-container {
+          background-color: rgba(0, 0, 0, 0.6) !important;
+          border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        }
+        #initial-view {
+          max-height: calc(100vh - 140px);
+        }
+      }
+      
+      /* Large desktop improvements */
+      @media (min-width: 1024px) {
+        .content-wrapper {
+          padding-bottom: 1rem;
+        }
+        .main-container {
+          padding-bottom: 1rem;
+        }
+        #initial-view {
+          max-height: calc(100vh - 160px);
+        }
+      }
     </style>
   </head>
   <body class="bg-black">
@@ -101,55 +155,77 @@
       <div class="content-wrapper">
         <div
           id="initial-view"
-          class="flex-1 flex flex-col items-center justify-center text-center p-4 text-white"
+          class="flex-1 flex flex-col items-center justify-center text-center px-6 py-8 pb-20 sm:pb-16 md:pb-12 text-white"
         >
           <img
             src="images/badge.svg"
             alt="Bully AI Logo"
-            class="w-48 h-48 md:w-56 md:h-56 mb-8"
+            class="w-40 h-40 sm:w-48 sm:h-48 md:w-56 md:h-56 mb-6 sm:mb-8"
           />
           <div class="text-clipper">
             <h1
-              class="text-5xl md:text-6xl font-bold tracking-wider leading-tight"
+              class="text-4xl sm:text-5xl md:text-6xl font-bold tracking-wider leading-tight"
             >
               MY NAME IS<br />BULLY AI
             </h1>
-            <h2 class="text-3xl md:text-4xl font-normal tracking-wide mt-4">
+            <h2 class="text-2xl sm:text-3xl md:text-4xl font-normal tracking-wide mt-4">
               YOUR CREDIT ASSISTANT
             </h2>
           </div>
-          <button
-            onclick="document.getElementById('file-upload').click()"
-            class="mt-10 bg-black bg-opacity-25 border border-white/30 text-white px-6 py-3 rounded-lg flex items-center space-x-3 hover:bg-opacity-40 transition-colors duration-300"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
+          <div class="mt-8 sm:mt-10 space-y-4 max-w-sm sm:max-w-md mx-auto">
+            <div class="flex items-start justify-center space-x-2 text-xs sm:text-sm text-white/80 px-2">
+              <input
+                type="checkbox"
+                id="terms-checkbox"
+                class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 mt-0.5 flex-shrink-0"
+                required
+              />
+              <label for="terms-checkbox" class="text-xs sm:text-sm leading-relaxed">
+                I agree to the 
+                <button
+                  type="button"
+                  onclick="openTermsModal()"
+                  class="text-blue-400 hover:text-blue-300 underline"
+                >
+                  Terms of Service
+                </button>
+              </label>
+            </div>
+            <button
+              id="upload-button"
+              onclick="handleUploadClick()"
+              disabled
+              class="w-full bg-black bg-opacity-25 border border-white/30 text-white px-4 sm:px-6 py-3 rounded-lg flex items-center justify-center space-x-3 hover:bg-opacity-40 transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <polyline points="17 8 12 3 7 8" />
-              <line x1="12" y1="3" x2="12" y2="15" />
-            </svg>
-            <span>Upload your 3 Credit Reports</span>
-          </button>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
+              <span>Upload your 3 Credit Reports</span>
+            </button>
+          </div>
         </div>
 
         <div
           id="chat-container"
-          class="hidden flex-1 p-4 overflow-y-auto space-y-4"
+          class="hidden flex-1 p-3 sm:p-4 overflow-y-auto space-y-4"
         >
           </div>
 
-        <div class="p-4 border-t border-white/20 bg-transparent">
+        <div class="pt-8 pb-3 px-3 sm:pt-12 sm:pb-4 sm:px-4 border-t border-white/20 bg-transparent flex-shrink-0">
           <div
-            class="bg-black bg-opacity-40 rounded-lg flex items-center space-x-2 p-1"
+            class="input-container bg-black bg-opacity-50 sm:bg-opacity-40 rounded-lg flex items-center space-x-2 p-2 sm:p-1 border border-white/10 sm:border-0 shadow-lg"
           >
             <input
               type="file"
@@ -160,8 +236,8 @@
               multiple
             />
             <button
-              onclick="document.getElementById('file-upload').click()"
-              class="p-2 text-gray-300 hover:text-white rounded-full transition duration-300"
+              onclick="handleUploadClick()"
+              class="p-2 sm:p-2 text-gray-300 hover:text-white rounded-full transition duration-300 hover:bg-white/10"
               aria-label="Upload file"
             >
               <svg
@@ -182,13 +258,13 @@
             <textarea
               id="user-input"
               rows="1"
-              class="flex-1 p-2 bg-transparent text-white border-none rounded-lg focus:outline-none focus:ring-0 resize-none"
+              class="flex-1 p-3 sm:p-2 bg-transparent text-white border-none rounded-lg focus:outline-none focus:ring-0 resize-none min-h-[44px] sm:min-h-[40px]"
               placeholder="Send a message..."
             ></textarea>
             <button
               id="send-button"
               onclick="sendMessage()"
-              class="bg-transparent text-white p-2 rounded-lg hover:bg-white/10 transition duration-300"
+              class="bg-transparent text-white p-2 sm:p-2 rounded-lg hover:bg-white/10 transition duration-300"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -210,6 +286,95 @@
             id="file-name-container"
             class="mt-2 flex flex-wrap items-center gap-2"
           ></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Terms of Service Modal -->
+    <div
+      id="terms-modal"
+      class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50 p-4"
+    >
+      <div class="bg-white p-4 sm:p-8 rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+        <h2 class="text-2xl font-bold mb-4">Terms of Service</h2>
+        <div class="text-sm text-gray-700 space-y-4 max-h-96 overflow-y-auto">
+          <p><strong>Effective Date:</strong> September 13, 2025</p>
+          <p><strong>Company:</strong> The Bureau Bullies, LLC – Wilmington, Delaware</p>
+          
+          <div>
+            <h3 class="font-semibold text-lg">1. Acceptance of Terms</h3>
+            <p>By accessing or using Bully AI ("the Service"), you agree to be bound by these Terms of Service. If you do not agree, you must immediately discontinue use of the Service. These Terms constitute a binding legal agreement between you and The Bureau Bullies, LLC.</p>
+          </div>
+
+          <div>
+            <h3 class="font-semibold text-lg">2. Description of Service</h3>
+            <p>Bully AI is an automated tool that scans uploaded credit reports, identifies potential violations, and generates dispute materials for personal use. The Service is provided for educational and informational purposes only. It does not constitute legal, financial, or professional advice, and no attorney-client or fiduciary relationship is created.</p>
+          </div>
+
+          <div>
+            <h3 class="font-semibold text-lg">3. Eligibility</h3>
+            <p>You must be at least 18 years of age and legally competent to enter into contracts. By using the Service, you represent and warrant that you meet these requirements.</p>
+          </div>
+
+          <div>
+            <h3 class="font-semibold text-lg">4. Data Collection, License, and Communications</h3>
+            <p>When using the Service, you may provide personal information including but not limited to your name, address, email address, and uploaded credit reports. By providing such data, you grant The Bureau Bullies a perpetual, irrevocable, worldwide, royalty-free, transferable license to: (a) collect, store, process, analyze, reproduce, and use the information you provide for the operation, improvement, and marketing of the Service; (b) share data with contractors, vendors, affiliates, and service providers as necessary; (c) contact you by email or mail for service-related, legal, or promotional purposes; and (d) monitor and record your use of the Service for compliance, quality control, and improvement purposes.</p>
+            <p>You expressly consent to receive email communications from us, including automated or promotional messages. You may opt out of promotional messages at any time, but operational communications are mandatory to use the Service.</p>
+          </div>
+
+          <div>
+            <h3 class="font-semibold text-lg">5. No Reliance; No Legal Advice</h3>
+            <p>You acknowledge and agree that The Bureau Bullies is not a law firm, attorney, or financial advisor. The Service is not a substitute for legal or financial advice. You will not rely on the Service for any legal, financial, or professional decisions. Any use of the Service is entirely at your own risk.</p>
+          </div>
+
+          <div>
+            <h3 class="font-semibold text-lg">6. Waiver of Statutory and Other Claims</h3>
+            <p>To the maximum extent permitted by law, you expressly waive and release The Bureau Bullies from any right to pursue statutory damages, penalties, or remedies under any state or federal law, including but not limited to the Fair Credit Reporting Act (FCRA), the Telephone Consumer Protection Act (TCPA), and any consumer protection statutes. You agree that your sole and exclusive remedy for any claim related to the Service shall be limited to the arbitration procedures described in Section 9 and, in no event, monetary damages exceeding one hundred dollars ($100).</p>
+          </div>
+
+          <div>
+            <h3 class="font-semibold text-lg">7. Limitation of Liability</h3>
+            <p>To the fullest extent permitted by law, the Service is provided "as is" and "as available", without any warranties of any kind, whether express or implied. The Bureau Bullies and its officers, directors, employees, contractors, affiliates, and agents disclaim liability for any damages, including but not limited to: direct, indirect, incidental, consequential, special, exemplary, or punitive damages; loss of data; lost profits; loss of goodwill; or reliance damages. The Bureau Bullies shall not be liable for errors, omissions, delays, or interruptions, even if advised of the possibility of such damages. In no event shall The Bureau Bullies' total liability exceed one hundred dollars ($100) regardless of the cause of action.</p>
+          </div>
+
+          <div>
+            <h3 class="font-semibold text-lg">8. Indemnification</h3>
+            <p>You agree to defend, indemnify, and hold harmless The Bureau Bullies, LLC, its affiliates, and employees from and against any claims, liabilities, damages, losses, and expenses (including attorney's fees) arising out of or in any way connected with your use or misuse of the Service, your violation of these Terms, or your violation of any third-party rights.</p>
+          </div>
+
+          <div>
+            <h3 class="font-semibold text-lg">9. Arbitration, Waiver of Jury Trial, and Governing Law</h3>
+            <p>All disputes shall be resolved by binding arbitration in Wilmington, Delaware under the rules of the American Arbitration Association. You waive any right to a jury trial or to participate in a class action. This Agreement is governed by and construed under the laws of the State of Delaware.</p>
+          </div>
+
+          <div>
+            <h3 class="font-semibold text-lg">10. Force Majeure</h3>
+            <p>The Bureau Bullies shall not be liable for any failure or delay caused by circumstances beyond its reasonable control, including but not limited to natural disasters, labor disputes, acts of government, cyberattacks, or disruptions of internet services.</p>
+          </div>
+
+          <div>
+            <h3 class="font-semibold text-lg">11. Severability and Survival</h3>
+            <p>If any provision of these Terms is found invalid or unenforceable, the remaining provisions shall remain in full force and effect. Provisions relating to limitation of liability, waiver of statutory damages, indemnification, dispute resolution, and data rights shall survive termination of this Agreement.</p>
+          </div>
+
+          <div>
+            <h3 class="font-semibold text-lg">12. Modifications</h3>
+            <p>The Bureau Bullies reserves the right to modify these Terms at any time, effective upon posting. Continued use of the Service constitutes acceptance of any modifications.</p>
+          </div>
+
+          <div>
+            <h3 class="font-semibold text-lg">13. Contact</h3>
+            <p>For questions regarding these Terms, contact us at: The Bureau Bullies, LLC, Wilmington, DE. Email: info@thebureaubullies.com</p>
+          </div>
+        </div>
+        <div class="mt-6 flex justify-end space-x-4">
+          <button
+            type="button"
+            onclick="closeTermsModal()"
+            class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
+          >
+            Close
+          </button>
         </div>
       </div>
     </div>
@@ -279,6 +444,33 @@
       let stagedFiles = [];
       let userData = null;
       let currentDownloadStep = null;
+      let termsAccepted = false;
+
+      // Terms of Service functions
+      function openTermsModal() {
+        document.getElementById("terms-modal").classList.remove("hidden");
+      }
+
+      function closeTermsModal() {
+        document.getElementById("terms-modal").classList.add("hidden");
+      }
+
+      function handleUploadClick() {
+        if (termsAccepted) {
+          document.getElementById('file-upload').click();
+        }
+      }
+
+      // Checkbox change handler
+      document.addEventListener('DOMContentLoaded', function() {
+        const termsCheckbox = document.getElementById('terms-checkbox');
+        const uploadButton = document.getElementById('upload-button');
+        
+        termsCheckbox.addEventListener('change', function() {
+          termsAccepted = this.checked;
+          uploadButton.disabled = !termsAccepted;
+        });
+      });
 
       function appendMessage(text, sender) {
         const chatContainer = document.getElementById("chat-container");
@@ -506,22 +698,14 @@
                     "<br>"
                   )}</div>
               </div>
-              <div class="bg-white/10 backdrop-blur-sm p-3 rounded-lg border border-white/20 text-white">
-                  <h4 class="font-semibold text-gray-100">Recommended Product:</h4>
-                   <a href="${
-                     result.productLink.url
-                   }" target="_blank" class="inline-block mt-2 bg-green-500 text-white px-3 py-1.5 rounded-md hover:bg-green-600 transition duration-300 text-sm font-semibold">${
-          result.productLink.text
-        }</a>
-              </div>
           </div>
           <div class="mt-4">
               <h4 class="font-semibold mb-2 text-white">Download Your Dispute Letters</h4>
-              <div class="flex flex-col sm:flex-row gap-2">
-                  <button onclick="openLeadCaptureModal('step1')" class="bg-black bg-opacity-25 border border-white/30 text-white px-4 py-2 rounded-lg hover:bg-opacity-40 transition duration-300 text-sm w-full">Step 1: CRA Dispute</button>
-                  <button onclick="openLeadCaptureModal('step2')" class="bg-black bg-opacity-25 border border-white/30 text-white px-4 py-2 rounded-lg hover:bg-opacity-40 transition duration-300 text-sm w-full">Step 2: MOV & ACDV Request</button>
-                  <button onclick="openLeadCaptureModal('step3')" class="bg-black bg-opacity-25 border border-white/30 text-white px-4 py-2 rounded-lg hover:bg-opacity-40 transition duration-300 text-sm w-full">Step 3: Furnisher Letter</button>
-                  <button onclick="openLeadCaptureModal('step4')" class="bg-black bg-opacity-25 border border-white/30 text-white px-4 py-2 rounded-lg hover:bg-opacity-40 transition duration-300 text-sm w-full">Step 4: Demand Letter</button>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <button onclick="checkUserDataAndDownload('step1')" class="bg-black bg-opacity-25 border border-white/30 text-white px-3 py-2 rounded-lg hover:bg-opacity-40 transition duration-300 text-xs sm:text-sm w-full">Step 1: CRA Dispute</button>
+                  <button onclick="checkUserDataAndDownload('step2')" class="bg-black bg-opacity-25 border border-white/30 text-white px-3 py-2 rounded-lg hover:bg-opacity-40 transition duration-300 text-xs sm:text-sm w-full">Step 2: MOV & ACDV Request</button>
+                  <button onclick="checkUserDataAndDownload('step3')" class="bg-black bg-opacity-25 border border-white/30 text-white px-3 py-2 rounded-lg hover:bg-opacity-40 transition duration-300 text-xs sm:text-sm w-full">Step 3: Furnisher Letter</button>
+                  <button onclick="checkUserDataAndDownload('step4')" class="bg-black bg-opacity-25 border border-white/30 text-white px-3 py-2 rounded-lg hover:bg-opacity-40 transition duration-300 text-xs sm:text-sm w-full">Step 4: Demand Letter</button>
               </div>
           </div>
         `;
@@ -614,6 +798,31 @@
           .classList.remove("hidden");
       }
 
+      function checkUserDataAndDownload(stepKey) {
+        if (userData && userData.name && userData.phone && userData.email && userData.address) {
+          console.log("User data already exists, downloading directly for step:", stepKey);
+          downloadLetter(stepKey);
+        } else {
+          console.log("User data not found, opening modal for step:", stepKey);
+          openLeadCaptureModal(stepKey);
+        }
+      }
+
+      function showUserDataSavedMessage() {
+        const chatContainer = document.getElementById("chat-container");
+        const messageDiv = document.createElement("div");
+        messageDiv.className = "flex justify-start";
+        const bubble = document.createElement("div");
+        bubble.className = "chat-bubble chat-bubble-ai p-3 rounded-lg bg-green-600/20 border border-green-500/30";
+        const content = document.createElement("p");
+        content.className = "text-sm text-green-300";
+        content.innerHTML = "✅ <strong>Your information has been saved!</strong> You can now download other letters without re-entering your details.";
+        bubble.appendChild(content);
+        messageDiv.appendChild(bubble);
+        chatContainer.appendChild(messageDiv);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      }
+
       function closeLeadCaptureModal() {
         document.getElementById("lead-capture-modal").classList.add("hidden");
       }
@@ -626,6 +835,11 @@
           email: document.getElementById("user-email").value,
           address: document.getElementById("user-address").value,
         };
+        
+        console.log("User data saved:", userData);
+        
+        // Show success message
+        showUserDataSavedMessage();
         
         // Save to GoHighLevel contact list
         try {
@@ -645,11 +859,14 @@
       }
 
       function downloadLetter(stepKey) {
-        if (!userData) {
+        // Check if user data exists and has all required fields
+        if (!userData || !userData.name || !userData.phone || !userData.email || !userData.address) {
+          console.log("User data not found or incomplete, opening modal for step:", stepKey);
           openLeadCaptureModal(stepKey);
           return;
         }
 
+        console.log("User data found, proceeding with download for step:", stepKey);
         let letterContent = generatedLetters[stepKey];
         if (!letterContent) {
           console.error("Letter content not available for step:", stepKey);
@@ -690,4 +907,4 @@
         });
     </script>
   </body>
-</html>
+</html>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
