@@ -824,7 +824,7 @@
         chatContainer.scrollTop = chatContainer.scrollHeight;
       }
 
-      function sendAutomatedWelcomeMessage(firstName, email) {
+      async function sendWelcomeEmail(firstName, email) {
         // Extract first name from full name
         const firstNameOnly = firstName ? firstName.split(' ')[0] : 'there';
         
@@ -839,14 +839,21 @@ You just took the first step most people never do. Keep going—you're on your w
 
         // Send email via GoHighLevel integration
         try {
+          console.log('Sending welcome email to:', email);
           // Use the existing GHL integration to send the welcome email
           if (window.GHLIntegration && window.GHLIntegration.sendEmail) {
-            window.GHLIntegration.sendEmail(email, 'Welcome to Bully AI!', welcomeMessage);
-            console.log('Welcome email sent to:', email);
+            const emailSuccess = await window.GHLIntegration.sendEmail(email, 'Welcome to Bully AI!', welcomeMessage);
+            if (emailSuccess) {
+              console.log('Welcome email sent successfully to:', email);
+            } else {
+              console.log('Welcome email failed to send to:', email);
+            }
           } else {
             // Fallback: log the message for manual sending
-            console.log('Welcome message for email:', email);
-            console.log('Message content:', welcomeMessage);
+            console.log('GHL Integration not available, logging message for manual sending:');
+            console.log('To:', email);
+            console.log('Subject: Welcome to Bully AI!');
+            console.log('Message:', welcomeMessage);
           }
         } catch (error) {
           console.error('Error sending welcome email:', error);
@@ -871,15 +878,15 @@ You just took the first step most people never do. Keep going—you're on your w
         // Show success message
         showUserDataSavedMessage();
         
-        // Send automated welcome message
-        sendAutomatedWelcomeMessage(userData.name, userData.email);
+        // Send automated welcome message via email
+        sendWelcomeEmail(userData.name, userData.email);
         
         // Save to GoHighLevel contact list (only once)
         if (!ghlContactSaved) {
           try {
-            console.log('Starting GHL integration...');
-            console.log('User data for GHL:', userData);
-            console.log('GHL Integration object:', window.GHLIntegration);
+        console.log('Starting GHL integration...');
+        console.log('User name:', userData.name);
+        console.log('User email:', userData.email);
             
             if (!window.GHLIntegration) {
               throw new Error('GHL Integration not loaded');

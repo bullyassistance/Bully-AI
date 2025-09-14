@@ -18,14 +18,22 @@ const GHL_CONFIG = {
  */
 async function saveContactToGHL(contactData) {
     try {
-        // Add unique identifier to force new contact creation
-        const timestamp = Date.now();
-        const uniqueEmail = `${contactData.email.split('@')[0]}+${timestamp}@${contactData.email.split('@')[1]}`;
+        // Format phone number to ensure it's saved exactly as entered
+        let formattedPhone = contactData.phone;
+        // Remove any existing country code if it starts with +1
+        if (formattedPhone.startsWith('+1')) {
+            formattedPhone = formattedPhone.substring(2);
+        }
+        // Ensure it doesn't start with + unless user specifically entered it
+        if (!formattedPhone.startsWith('+') && !formattedPhone.startsWith('1')) {
+            // Keep the phone number exactly as entered by user
+            formattedPhone = contactData.phone;
+        }
         
         const contactPayload = {
             name: contactData.name,
-            email: uniqueEmail, // Use unique email to force new contact creation
-            phone: contactData.phone,
+            email: contactData.email, // Use original email exactly as entered
+            phone: formattedPhone, // Use formatted phone number
             tags: [GHL_CONFIG.contactListName.toLowerCase()],
             source: 'Bully AI - Credit Assistant',
             sourceId: 'bully-ai-credit-assistant',
@@ -34,7 +42,6 @@ async function saveContactToGHL(contactData) {
                 'Lead Source': 'Bully AI Website',
                 'Service Interest': 'Credit Dispute Letters',
                 'Form Submission Date': new Date().toISOString(),
-                'Original Email': contactData.email, // Store original email for reference
                 'Welcome Message': `👋 Hey ${contactData.name.split(' ')[0] || 'there'}, welcome to Bully AI!
 Great news—your credit reports have been scanned and your dispute letters are ready. 🚀
 
@@ -46,9 +53,10 @@ You just took the first step most people never do. Keep going—you're on your w
             }
         };
 
-        console.log('Sending contact to GHL with payload:', contactPayload);
-        console.log('GHL API URL:', `${GHL_CONFIG.baseUrl}/v1/contacts/`);
-        console.log('GHL API Key:', GHL_CONFIG.apiKey.substring(0, 20) + '...');
+        console.log('Sending contact to GHL...');
+        console.log('Contact name:', contactPayload.name);
+        console.log('Contact email:', contactPayload.email);
+        console.log('Contact phone:', contactPayload.phone);
 
         const response = await fetch(`${GHL_CONFIG.baseUrl}/v1/contacts/`, {
             method: 'POST',
@@ -68,7 +76,7 @@ You just took the first step most people never do. Keep going—you're on your w
         }
 
         const result = await response.json();
-        console.log('GHL API Success Response:', result);
+        console.log('GHL API Success - Contact created with ID:', result.contact?.id);
         return result;
 
     } catch (error) {
@@ -152,9 +160,7 @@ function showErrorMessage(errorMessage) {
 }
 
 /**
- * Send email via GoHighLevel Workflow
- * Note: This function logs the email content for workflow setup
- * The actual email sending is handled by GHL workflow when contact is added
+ * Send email via GoHighLevel API
  * @param {string} toEmail - Recipient email address
  * @param {string} subject - Email subject
  * @param {string} message - Email message content
@@ -162,20 +168,46 @@ function showErrorMessage(errorMessage) {
  */
 async function sendEmail(toEmail, subject, message) {
     try {
-        // Log the email details for workflow setup reference
-        console.log('Email details for GHL workflow setup:');
+        console.log('Sending email via GHL API...');
         console.log('To:', toEmail);
         console.log('Subject:', subject);
-        console.log('Message:', message);
         
-        // Since we're using GHL workflow, we just return success
-        // The workflow will handle the actual email sending
-        console.log('Email will be sent via GHL workflow when contact is added');
+        const emailPayload = {
+            to: toEmail,
+            subject: subject,
+            htmlBody: message.replace(/\n/g, '<br>'),
+            textBody: message
+        };
+
+        const response = await fetch(`${GHL_CONFIG.baseUrl}/v1/emails/`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${GHL_CONFIG.apiKey}`,
+                'Version': GHL_CONFIG.version,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(emailPayload)
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('GHL Email API Error Response:', response.status, errorText);
+            throw new Error(`GHL Email API Error: ${response.status} - ${errorText}`);
+        }
+
+        const result = await response.json();
+        console.log('GHL Email API Success Response:', result);
         return true;
 
     } catch (error) {
-        console.error('Error preparing email for GHL workflow:', error);
-        throw error;
+        console.error('Error sending email via GHL API:', error);
+        // Fallback: just log the message for manual sending
+        console.log('Email fallback - message for manual sending:');
+        console.log('To:', toEmail);
+        console.log('Subject:', subject);
+        console.log('Message:', message);
+        return false;
     }
 }
 
