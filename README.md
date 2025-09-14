@@ -9,3 +9,4 @@ added terms and conditions.
 I have removed the button you asked for. 
 I have added so user does not need to enter his details again and again for all files. 
 Improved for mobile. 
+send email
