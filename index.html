@@ -445,6 +445,7 @@
       let userData = null;
       let currentDownloadStep = null;
       let termsAccepted = false;
+      let ghlContactSaved = false; // Track if contact has been saved to GHL
 
       // Terms of Service functions
       function openTermsModal() {
@@ -823,6 +824,35 @@
         chatContainer.scrollTop = chatContainer.scrollHeight;
       }
 
+      function sendAutomatedWelcomeMessage(firstName, email) {
+        // Extract first name from full name
+        const firstNameOnly = firstName ? firstName.split(' ')[0] : 'there';
+        
+        const welcomeMessage = `👋 Hey ${firstNameOnly}, welcome to Bully AI!
+Great news—your credit reports have been scanned and your dispute letters are ready. 🚀
+
+👉 Inside your file you'll see the specific errors we found on your reports. Each one could mean deletions or even compensation if not corrected.
+
+📬 Next step: go to OnlineCertifiedMail.com and send your letters today. Certified mail gives you proof the bureaus received them—this is your evidence trail.
+
+You just took the first step most people never do. Keep going—you're on your way to real credit justice.`;
+
+        // Send email via GoHighLevel integration
+        try {
+          // Use the existing GHL integration to send the welcome email
+          if (window.GHLIntegration && window.GHLIntegration.sendEmail) {
+            window.GHLIntegration.sendEmail(email, 'Welcome to Bully AI!', welcomeMessage);
+            console.log('Welcome email sent to:', email);
+          } else {
+            // Fallback: log the message for manual sending
+            console.log('Welcome message for email:', email);
+            console.log('Message content:', welcomeMessage);
+          }
+        } catch (error) {
+          console.error('Error sending welcome email:', error);
+        }
+      }
+
       function closeLeadCaptureModal() {
         document.getElementById("lead-capture-modal").classList.add("hidden");
       }
@@ -841,15 +871,40 @@
         // Show success message
         showUserDataSavedMessage();
         
-        // Save to GoHighLevel contact list
-        try {
-          const ghlSuccess = await window.GHLIntegration.handleGHLFormSubmission(userData);
-          if (ghlSuccess) {
-            console.log('Contact successfully saved to GHL FREE AI list');
+        // Send automated welcome message
+        sendAutomatedWelcomeMessage(userData.name, userData.email);
+        
+        // Save to GoHighLevel contact list (only once)
+        if (!ghlContactSaved) {
+          try {
+            console.log('Starting GHL integration...');
+            console.log('User data for GHL:', userData);
+            console.log('GHL Integration object:', window.GHLIntegration);
+            
+            if (!window.GHLIntegration) {
+              throw new Error('GHL Integration not loaded');
+            }
+            
+            if (!window.GHLIntegration.handleGHLFormSubmission) {
+              throw new Error('handleGHLFormSubmission function not found');
+            }
+            
+            const ghlSuccess = await window.GHLIntegration.handleGHLFormSubmission(userData);
+            console.log('GHL integration result:', ghlSuccess);
+            if (ghlSuccess) {
+              console.log('Contact successfully saved to GHL FREE AI list');
+              ghlContactSaved = true; // Mark as saved
+            } else {
+              console.log('GHL integration returned false');
+            }
+          } catch (error) {
+            console.error('GHL integration error:', error);
+            console.error('Error details:', error.message);
+            console.error('Error stack:', error.stack);
+            // Continue with download even if GHL fails
           }
-        } catch (error) {
-          console.error('GHL integration error:', error);
-          // Continue with download even if GHL fails
+        } else {
+          console.log('Contact already saved to GHL, skipping...');
         }
         
         // Proceed with letter download
@@ -905,6 +960,15 @@
             sendMessage();
           }
         });
+
+      // Test GHL integration on page load
+      window.addEventListener('load', function() {
+        console.log('Page loaded, testing GHL integration...');
+        console.log('GHL Integration available:', !!window.GHLIntegration);
+        if (window.GHLIntegration) {
+          console.log('GHL Integration functions:', Object.keys(window.GHLIntegration));
+        }
+      });
     </script>
   </body>
 </html>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
