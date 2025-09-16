@@ -1,6 +1,6 @@
 # 🚀 Bully AI - Credit Dispute Assistant
 
-A powerful AI-powered web application that analyzes credit reports and generates personalized dispute letters to help users improve their credit scores.
+An AI-powered web application that analyzes credit reports and generates personalized dispute letters to help users improve their credit scores.
 
 ## ✨ Features
 
