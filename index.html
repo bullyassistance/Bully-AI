@@ -949,11 +949,11 @@ You just took the first step most people never do. Keep going—you're on your w
           .replace(/\[Date\]/g, today);
 
         const blob = new Blob([letterContent], {
-          type: "application/msword",
+          type: "text/plain",
         });
         const link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
-        link.download = `BullyAI_Dispute_Letter_${stepKey}.doc`;
+        link.download = `BullyAI_Dispute_Letter_${stepKey}.txt`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
