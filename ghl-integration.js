@@ -1,6 +1,6 @@
 /**
  * GoHighLevel API Integration
- * Handles saving user data to GHL contacts with "FREE AI" tag
+ * Handles saving user data to GHL contacts with "AI-Scanner-Uploaded" tag
  */
 
 // GHL API Configuration
@@ -8,15 +8,80 @@ const GHL_CONFIG = {
     baseUrl: 'https://rest.gohighlevel.com',
     apiKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsb2NhdGlvbl9pZCI6Im1lWDBFcnk0YUJXdGpHME1HMFR1IiwidmVyc2lvbiI6MSwiaWF0IjoxNzU3NzQ1OTc5NjcyLCJzdWIiOiJNNThpeGpnSWdtb2doRXBYNVJ1ViJ9.kBGx9-dPuTraGnga-WG-_CMmjE1DCthkYjRCmbEGus0',
     version: '2021-07-28',
-    contactListName: 'FREE AI'
+    contactListName: 'AI-Scanner-Uploaded',
+    // Location ID is required for custom fields lookups
+    locationId: 'meX0Ery4aBWtjG0MG0Tu'
 };
+
+// Fetch all custom fields for the location and return a map of key->id and name->id for convenience
+async function fetchCustomFieldDirectory() {
+    try {
+        const url = `${GHL_CONFIG.baseUrl}/v1/custom-fields/?locationId=${encodeURIComponent(GHL_CONFIG.locationId)}`;
+        const res = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${GHL_CONFIG.apiKey}`,
+                'Version': GHL_CONFIG.version,
+                'Accept': 'application/json'
+            }
+        });
+        if (!res.ok) {
+            console.warn('Failed to fetch custom fields directory:', res.status, await res.text());
+            return { byKey: {}, byName: {} };
+        }
+        const data = await res.json();
+        const items = data?.customFields || data?.customField || data?.items || [];
+        const byKey = {};
+        const byName = {};
+        items.forEach((f) => {
+            // Normalize keys/names to lower_snake for robust matching
+            const key = (f.key || f.fieldKey || f.name || '').toString();
+            const normKey = key.trim();
+            if (normKey) byKey[normKey] = f.id;
+            const name = (f.name || '').toString().trim().toLowerCase();
+            if (name) byName[name] = f.id;
+        });
+        return { byKey, byName };
+    } catch (e) {
+        console.warn('Error fetching custom fields directory:', e);
+        return { byKey: {}, byName: {} };
+    }
+}
+
+// Build the contact.customField payload array [{id, value}] given analysis data
+async function buildCustomFieldArray(analysisData) {
+    const directory = await fetchCustomFieldDirectory();
+    const result = [];
+    const desired = {
+        violation_count: analysisData ? (analysisData.issues ? analysisData.issues.length : 0) : undefined,
+        claim_value: analysisData && analysisData.caseValue
+            ? `${analysisData.caseValue.lowEnd || 0}-${analysisData.caseValue.highEnd || 0}`
+            : undefined,
+        report_date: new Date().toISOString().split('T')[0]
+    };
+
+    Object.entries(desired).forEach(([key, value]) => {
+        if (value === undefined) return;
+        // Try exact key match first (preferred), then name match
+        const id = directory.byKey[key] || directory.byName[key.replace(/_/g, ' ')] || directory.byName[key];
+        if (id) {
+            result.push({ id, value });
+        } else {
+            console.warn('No custom field id found for key:', key);
+        }
+    });
+
+    console.log('Resolved customField array:', result);
+    return result;
+}
 
 /**
  * Save contact to GoHighLevel
  * @param {Object} contactData - User contact information
+ * @param {Object} analysisData - AI analysis results (optional)
  * @returns {Promise<Object>} - API response
  */
-async function saveContactToGHL(contactData) {
+async function saveContactToGHL(contactData, analysisData = null) {
     try {
         // Format phone number to ensure it's saved exactly as entered
         let formattedPhone = contactData.phone;
@@ -30,6 +95,9 @@ async function saveContactToGHL(contactData) {
             formattedPhone = contactData.phone;
         }
         
+        // Resolve custom field IDs and values for the known fields
+        const customFieldArray = await buildCustomFieldArray(analysisData);
+
         const contactPayload = {
             name: contactData.name,
             email: contactData.email, // Use original email exactly as entered
@@ -38,25 +106,17 @@ async function saveContactToGHL(contactData) {
             source: 'Bully AI - Credit Assistant',
             sourceId: 'bully-ai-credit-assistant',
             address: contactData.address,
-            customFields: {
-                'Lead Source': 'Bully AI Website',
-                'Service Interest': 'Credit Dispute Letters',
-                'Form Submission Date': new Date().toISOString(),
-                'Welcome Message': `👋 Hey ${contactData.name.split(' ')[0] || 'there'}, welcome to Bully AI!
-Great news—your credit reports have been scanned and your dispute letters are ready. 🚀
-
-👉 Inside your file you'll see the specific errors we found on your reports. Each one could mean deletions or even compensation if not corrected.
-
-📬 Next step: go to OnlineCertifiedMail.com and send your letters today. Certified mail gives you proof the bureaus received them—this is your evidence trail.
-
-You just took the first step most people never do. Keep going—you're on your way to real credit justice.`
-            }
+            // v1 Contacts endpoint expects customField array: [{ id, value }]
+            customField: customFieldArray
         };
 
         console.log('Sending contact to GHL...');
         console.log('Contact name:', contactPayload.name);
         console.log('Contact email:', contactPayload.email);
         console.log('Contact phone:', contactPayload.phone);
+        console.log('Analysis data received:', analysisData);
+        console.log('Custom fields being sent (array):', JSON.stringify(contactPayload.customField, null, 2));
+        console.log('Full payload being sent:', JSON.stringify(contactPayload, null, 2));
 
         const response = await fetch(`${GHL_CONFIG.baseUrl}/v1/contacts/`, {
             method: 'POST',
@@ -77,6 +137,37 @@ You just took the first step most people never do. Keep going—you're on your w
 
         const result = await response.json();
         console.log('GHL API Success - Contact created with ID:', result.contact?.id);
+        console.log('GHL Response - Contact data:', result.contact);
+        console.log('GHL Response - Custom fields:', result.contact?.customField);
+        
+        // Try to update custom fields separately if they weren't saved
+        if (result.contact?.id && result.contact?.customField?.length === 0 && contactPayload.customField.length > 0) {
+            console.log('Custom fields not saved, trying separate update...');
+            try {
+                const updateResponse = await fetch(`${GHL_CONFIG.baseUrl}/v1/contacts/${result.contact.id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${GHL_CONFIG.apiKey}`,
+                        'Version': GHL_CONFIG.version,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        customField: contactPayload.customField
+                    })
+                });
+                
+                if (updateResponse.ok) {
+                    const updateResult = await updateResponse.json();
+                    console.log('Custom fields update successful:', updateResult);
+                } else {
+                    console.log('Custom fields update failed:', await updateResponse.text());
+                }
+            } catch (updateError) {
+                console.error('Error updating custom fields:', updateError);
+            }
+        }
+        
         return result;
 
     } catch (error) {
@@ -214,10 +305,11 @@ async function sendEmail(toEmail, subject, message) {
 /**
  * Handle form submission with GHL integration
  * @param {Object} userData - Form data from the lead capture form
+ * @param {Object} analysisData - AI analysis results (optional)
  * @param {string} formSelector - Optional form selector (defaults to #lead-capture-form)
  * @returns {Promise<boolean>} - Success status
  */
-async function handleGHLFormSubmission(userData, formSelector = '#lead-capture-form') {
+async function handleGHLFormSubmission(userData, analysisData = null, formSelector = '#lead-capture-form') {
     console.log('handleGHLFormSubmission called with:', userData);
     
     // Show loading indicator
@@ -233,7 +325,7 @@ async function handleGHLFormSubmission(userData, formSelector = '#lead-capture-f
     try {
         console.log('About to call saveContactToGHL...');
         // Save to GHL
-        const result = await saveContactToGHL(userData);
+        const result = await saveContactToGHL(userData, analysisData);
         console.log('saveContactToGHL result:', result);
 
         // Show success message

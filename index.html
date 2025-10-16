@@ -214,6 +214,32 @@
               </svg>
               <span>Upload your 3 Credit Reports</span>
             </button>
+            
+            <!-- Test Button -->
+            <button
+              id="test-button"
+              onclick="testGHLIntegration()"
+              class="w-full bg-red-600 bg-opacity-25 border border-red-300 text-white px-4 sm:px-6 py-3 rounded-lg flex items-center justify-center space-x-3 hover:bg-opacity-40 transition-colors duration-300"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M9 12l2 2 4-4" />
+                <path d="M21 12c-1 0-3-1-3-3s2-3 3-3 3 1 3 3-2 3-3 3" />
+                <path d="M3 12c1 0 3-1 3-3s-2-3-3-3-3 1-3 3 2 3 3 3" />
+                <path d="M12 3c0 1-1 3-3 3s-3-2-3-3 1-3 3-3 3 2 3 3" />
+                <path d="M12 21c0-1 1-3 3-3s3 2 3 3-1 3-3 3-3-2-3-3" />
+              </svg>
+              <span>🧪 Test GHL Integration</span>
+            </button>
           </div>
         </div>
 
@@ -654,6 +680,8 @@
       function displayAnalysis(result) {
         const chatContainer = document.getElementById("chat-container");
         generatedLetters = result.letters;
+        // Store the full analysis result for GHL integration
+        window.currentAnalysisResult = result;
 
         const formatCurrency = (amount) =>
           new Intl.NumberFormat("en-US", {
@@ -896,10 +924,11 @@ You just took the first step most people never do. Keep going—you're on your w
               throw new Error('handleGHLFormSubmission function not found');
             }
             
-            const ghlSuccess = await window.GHLIntegration.handleGHLFormSubmission(userData);
+            console.log('About to call GHL integration with analysis data:', window.currentAnalysisResult);
+            const ghlSuccess = await window.GHLIntegration.handleGHLFormSubmission(userData, window.currentAnalysisResult);
             console.log('GHL integration result:', ghlSuccess);
             if (ghlSuccess) {
-              console.log('Contact successfully saved to GHL FREE AI list');
+              console.log('Contact successfully saved to GHL AI-Scanner-Uploaded list');
               ghlContactSaved = true; // Mark as saved
             } else {
               console.log('GHL integration returned false');
@@ -967,6 +996,75 @@ You just took the first step most people never do. Keep going—you're on your w
             sendMessage();
           }
         });
+
+      // Test GHL integration function
+      async function testGHLIntegration() {
+        console.log('🧪 Starting GHL Integration Test...');
+        
+        // Fixed test data
+        const testUserData = {
+          name: 'Test User',
+          phone: '555-123-4567',
+          email: 'test@example.com',
+          address: '123 Test Street, Test City, TC 12345'
+        };
+        
+        // Fixed test analysis data
+        const testAnalysisData = {
+          issues: [
+            {
+              account: "TEST ACCOUNT / #1234",
+              type: "Test Violation",
+              description: "This is a test violation for testing purposes."
+            },
+            {
+              account: "ANOTHER TEST / #5678",
+              type: "Another Test Violation", 
+              description: "Another test violation for testing purposes."
+            },
+            {
+              account: "THIRD TEST / #9012",
+              type: "Third Test Violation",
+              description: "Third test violation for testing purposes."
+            }
+          ],
+          caseValue: {
+            lowEnd: 3000,
+            highEnd: 8000
+          },
+          strategy: "Test strategy for testing purposes.",
+          letterSendingInstructions: "Test instructions for testing purposes.",
+          productLink: {
+            text: "Test Product Link",
+            url: "https://www.test.com"
+          },
+          letters: {
+            step1: "Test letter 1",
+            step2: "Test letter 2", 
+            step3: "Test letter 3",
+            step4: "Test letter 4"
+          }
+        };
+        
+        console.log('Test User Data:', testUserData);
+        console.log('Test Analysis Data:', testAnalysisData);
+        
+        try {
+          // Call GHL integration with test data
+          const ghlSuccess = await window.GHLIntegration.handleGHLFormSubmission(testUserData, testAnalysisData);
+          
+          if (ghlSuccess) {
+            console.log('✅ GHL Integration Test SUCCESSFUL!');
+            alert('✅ GHL Integration Test SUCCESSFUL!\n\nCheck your GoHighLevel dashboard for:\n- Contact: Test User\n- Tag: ai-scanner-uploaded\n- Violation Count: 3\n- Claim Value: 3000-8000');
+          } else {
+            console.log('❌ GHL Integration Test FAILED!');
+            alert('❌ GHL Integration Test FAILED!\n\nCheck console for errors.');
+          }
+        } catch (error) {
+          console.error('❌ GHL Integration Test ERROR:', error);
+          alert('❌ GHL Integration Test ERROR!\n\nCheck console for details.');
+        }
+      }
 
       // Test GHL integration on page load
       window.addEventListener('load', function() {
